@@ -30,20 +30,31 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Fetch tracker.gg match history
+      - name: Fetch match history
         id: fetch
         if: github.event_name != 'push'
         continue-on-error: true
+        env:
+          # With this repo secret set, data comes from the HenrikDev API (works from GitHub's servers).
+          # Without it, the tool tries tracker.gg, which Cloudflare usually blocks here.
+          HENRIKDEV_API_KEY: ${{ secrets.HENRIKDEV_API_KEY }}
         run: |
-          pip install -r requirements.txt
+          if [ -z "$HENRIKDEV_API_KEY" ]; then pip install -r requirements.txt; fi
           python valo_planner.py fetch
 
       - name: Note a failed or partial refresh
         if: steps.fetch.outcome == 'failure'
+        env:
+          HAS_KEY: ${{ secrets.HENRIKDEV_API_KEY != '' }}
         run: |
           {
             echo "### Data refresh incomplete"
-            echo "tracker.gg didn't return fresh data for everyone (Cloudflare can block GitHub's servers)."
+            if [ "$HAS_KEY" != "true" ]; then
+              echo "No HENRIKDEV_API_KEY secret is set, so the refresh tried tracker.gg, which blocks GitHub's servers."
+              echo "Add the key (see README) to make the weekly refresh work."
+            else
+              echo "Some players got no fresh data from the HenrikDev API (see the Fetch step log)."
+            fi
             echo "The page was still published, using the newest data available."
             echo "To refresh by hand: run \`python valo_planner.py fetch\` on your PC and push \`data/squad_data.json\`."
           } >> "$GITHUB_STEP_SUMMARY"
@@ -53,7 +64,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/squad_data.json
+          git add data/
           if git diff --cached --quiet; then
             echo "No data changes."
           else

@@ -51,6 +51,20 @@ The data refreshes every Monday morning by itself.
 - **New pro meta** (after a big patch or event): `meta.json` holds role setups, agent pick rates and
   top comps per map. Ask Claude to refresh it from VLR.gg, or edit by hand.
 
+## Weekly data refresh: HenrikDev API key (one-time, free)
+
+tracker.gg blocks GitHub's servers, so the Monday refresh uses the free HenrikDev Valorant API instead:
+
+1. Go to https://api.henrikdev.xyz/dashboard/, sign in, open **API Keys** and generate a key
+   (a basic key is enough for 9 players once a week).
+2. In this repo: **Settings → Secrets and variables → Actions → New repository secret**.
+   Name: `HENRIKDEV_API_KEY`, value: the key.
+3. Actions → **Refresh data and publish page** → **Run workflow** to test it. The run summary says if
+   anything failed.
+
+Match history builds up in `data/history/` every week. Until a player has 40 games there, their previous
+numbers are kept. Everyone is looked up in the `eu` region; change `--region` in the workflow if that's wrong.
+
 ## If the Monday refresh can't reach tracker.gg
 
 tracker.gg sits behind Cloudflare, which sometimes blocks GitHub's servers. The page still publishes
@@ -59,7 +73,7 @@ with the last good data, and the run summary says so. To refresh from your own P
 ```
 pip install -r requirements.txt
 python valo_planner.py fetch
-git add data/squad_data.json && git commit -m "Refresh squad data" && git push
+git add data/ && git commit -m "Refresh squad data" && git push
 ```
 
 Profiles must be public on tracker.gg.

@@ -221,14 +221,141 @@ def fetch_player(session, riot_id, pages, delay, cache_dir):
 
 
 def fetch_many(players, args):
+    """Returns the players that got fresh data."""
+    key = os.environ.get("HENRIKDEV_API_KEY", "").strip()
+    source = args.source if args.source != "auto" else ("henrik" if key else "tracker")
+    ok = []
+    if source == "henrik":
+        if not key:
+            sys.exit("Set HENRIKDEV_API_KEY (get a key at https://api.henrikdev.xyz/dashboard/).")
+        print(f"Fetching {len(players)} player(s) from the HenrikDev API ({args.region})...")
+        for rid in players:
+            try:
+                new, total = fetch_player_henrik(rid, key, args.region, args.history, args.delay)
+                print(f"  {rid:<26} {new} matches fetched, {total} stored")
+                ok.append(rid)
+            except FetchError as e:
+                print(f"  {rid:<26} FAILED: {e}")
+            time.sleep(args.delay)
+        return ok
     session, kind = make_session()
     print(f"Fetching {len(players)} player(s) via {kind}...")
     for rid in players:
         try:
             n = fetch_player(session, rid, args.pages, args.delay, args.cache)
             print(f"  {rid:<26} {n} matches")
+            ok.append(rid)
         except FetchError as e:
             print(f"  {rid:<26} FAILED: {e}")
+    return ok
+
+
+# ----------------------------------------------------------------------------- HenrikDev API
+# Free community API that, unlike tracker.gg, doesn't block GitHub's servers. Needs a key from
+# https://api.henrikdev.xyz/dashboard/ in the HENRIKDEV_API_KEY environment variable / repo secret.
+HENRIK = "https://api.henrikdev.xyz"
+
+
+def henrik_get(path, key, retries=4):
+    import urllib.error
+    import urllib.request
+    for attempt in range(retries):
+        req = urllib.request.Request(HENRIK + path, headers={"Authorization": key, "Accept": "application/json",
+                                                             "User-Agent": "valo-comp-picker"})
+        try:
+            with urllib.request.urlopen(req, timeout=40) as r:
+                return json.loads(r.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            if e.code == 429 or e.code >= 500:
+                wait = float(e.headers.get("Retry-After") or e.headers.get("X-RateLimit-Reset") or 5 * (attempt + 1))
+                time.sleep(min(wait, 60) + 1)
+                continue
+            if e.code in (401, 403):
+                raise FetchError(f"HenrikDev HTTP {e.code}: the API key is missing, wrong or expired")
+            if e.code == 404:
+                raise FetchError("HenrikDev HTTP 404: account not found (check the Riot ID and region)")
+            raise FetchError(f"HenrikDev HTTP {e.code}")
+        except urllib.error.URLError as e:
+            if attempt == retries - 1:
+                raise FetchError(f"network error: {e.reason}")
+            time.sleep(3 * (attempt + 1))
+    raise FetchError("HenrikDev kept rate-limiting; try again later")
+
+
+def _iso_ts(v):
+    try:
+        return datetime.fromisoformat(str(v).replace("Z", "+00:00")).timestamp()
+    except ValueError:
+        return None
+
+
+def henrik_stored_record(m):
+    """One entry of /v1/stored-matches -> our record (without player/weight)."""
+    meta, st, teams = m.get("meta") or {}, m.get("stats") or {}, m.get("teams") or {}
+    mine = str(st.get("team") or "").lower()
+    if mine not in ("red", "blue"):
+        return None
+    my_r, their_r = teams.get(mine), teams.get("blue" if mine == "red" else "red")
+    if not isinstance(my_r, int) or not isinstance(their_r, int) or my_r + their_r == 0:
+        return None
+    rounds = my_r + their_r
+    agent, map_name = dig(st, "character", "name"), dig(meta, "map", "name")
+    if not agent or not map_name:
+        return None
+    return {"id": meta.get("id"), "ts": _iso_ts(meta.get("started_at")), "agent": agent, "map": map_name,
+            "won": 1.0 if my_r > their_r else 0.5 if my_r == their_r else 0.0,
+            "acs": (st.get("score") or 0) / rounds, "adr": (dig(st, "damage", "made") or 0) / rounds,
+            "kd": (st.get("kills") or 0) / max(st.get("deaths") or 0, 1)}
+
+
+def henrik_v4_record(m, riot_id):
+    """One entry of /v4/matches -> our record for this player."""
+    name, tag = riot_id.lower().split("#", 1)
+    me = next((p for p in m.get("players") or [] if str(p.get("name", "")).lower() == name
+               and str(p.get("tag", "")).lower() == tag), None)
+    if not me:
+        return None
+    team = next((t for t in m.get("teams") or [] if t.get("team_id") == me.get("team_id")), None)
+    if not team:
+        return None
+    rw, rl = dig(team, "rounds", "won") or 0, dig(team, "rounds", "lost") or 0
+    rounds = rw + rl
+    st, md = me.get("stats") or {}, m.get("metadata") or {}
+    agent, map_name = dig(me, "agent", "name"), dig(md, "map", "name")
+    if not rounds or not agent or not map_name:
+        return None
+    return {"id": md.get("match_id"), "ts": _iso_ts(md.get("started_at")), "agent": agent, "map": map_name,
+            "won": 1.0 if team.get("won") else 0.5 if rw == rl else 0.0,
+            "acs": (st.get("score") or 0) / rounds, "adr": (dig(st, "damage", "dealt") or 0) / rounds,
+            "kd": (st.get("kills") or 0) / max(st.get("deaths") or 0, 1)}
+
+
+def fetch_player_henrik(riot_id, key, region, history_dir, delay):
+    """Latest games (v4, which also makes HenrikDev store them) + the stored competitive history.
+    Results accumulate in data/history/<player>.json (committed), so history keeps growing week after week."""
+    name, tag = (quote(x, safe="") for x in riot_id.split("#", 1))
+    found = {}
+    v4 = henrik_get(f"/valorant/v4/matches/{region}/pc/{name}/{tag}?mode=competitive&size=10", key)
+    for m in v4.get("data") or []:
+        r = henrik_v4_record(m, riot_id)
+        if r and r["id"]:
+            found[r["id"]] = r
+    time.sleep(delay)
+    stored = henrik_get(f"/valorant/v1/stored-matches/{region}/{name}/{tag}?mode=competitive&size=200&page=1", key)
+    for m in stored.get("data") or []:
+        r = henrik_stored_record(m)
+        if r and r["id"] and r["id"] not in found:
+            found[r["id"]] = r
+    os.makedirs(history_dir, exist_ok=True)
+    path = os.path.join(history_dir, safe_name(riot_id) + ".json")
+    old = {}
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            old = {r["id"]: r for r in json.load(f)}
+    old.update(found)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(sorted(old.values(), key=lambda r: -(r["ts"] or 0)), f)
+    return len(found), len(old)
 
 
 # ----------------------------------------------------------------------------- parsing
@@ -265,25 +392,32 @@ def parse_match(m, riot_id):
             "acs": sval(st, "scorePerRound"), "adr": sval(st, "damagePerRound"), "kd": kills / max(deaths, 1.0)}
 
 
-def load_records(players, cache_dir, half_life=90):
+def load_records(players, cache_dir, half_life=90, history_dir=None):
     """Load every cached player (the whole squad gives better role baselines), deduped per player.
     Each game gets weight 0.5 ** (age_days / half_life); half_life 0 = all games equal."""
     records, now = [], time.time()
     for rid in players:
         d = os.path.join(cache_dir, safe_name(rid))
-        if not os.path.isdir(d):
-            continue
         seen = set()
-        for fn in sorted(f for f in os.listdir(d) if re.match(r"matches_\d+\.json$", f)):
+        found = []
+        hp = os.path.join(history_dir or "", safe_name(rid) + ".json")
+        if history_dir and os.path.exists(hp):
+            with open(hp, encoding="utf-8") as f:
+                for h in json.load(f):
+                    found.append({**h, "player": rid, "role": ROLES.get(h["agent"], "Flex")})
+        for fn in sorted(f for f in (os.listdir(d) if os.path.isdir(d) else []) if re.match(r"matches_\d+\.json$", f)):
             with open(os.path.join(d, fn), encoding="utf-8") as f:
                 data = json.load(f)
             for m in dig(data, "data", "matches", default=[]) or []:
                 r = parse_match(m, rid)
-                if r and r["id"] not in seen:
-                    seen.add(r["id"])
-                    age = max(0.0, (now - r["ts"]) / 86400) if r["ts"] else 0.0
-                    r["w"] = 0.5 ** (age / half_life) if half_life else 1.0
-                    records.append(r)
+                if r:
+                    found.append(r)
+        for r in found:  # HenrikDev and tracker.gg use the same Riot match ids, so this dedupes across sources
+            if r["id"] not in seen:
+                seen.add(r["id"])
+                age = max(0.0, (now - r["ts"]) / 86400) if r["ts"] else 0.0
+                r["w"] = 0.5 ** (age / half_life) if half_life else 1.0
+                records.append(r)
     return records
 
 
@@ -512,8 +646,14 @@ def records_from_data(data):
 def cmd_fetch(args):
     sq = load_squad(args.squad)
     roster = sq["players"]
-    fetch_many(roster, args)
-    records = load_records(roster, args.cache, args.half_life)
+    fresh = fetch_many(roster, args)
+    records = load_records(roster, args.cache, args.half_life, args.history)
+    old_players = load_data(args.data)["players"] if os.path.exists(args.data) else []
+    counts = {p: sum(1 for r in records if r["player"] == p) for p in roster}
+    thin = [p for p in roster if 0 < counts[p] < args.min_history and p in old_players]
+    for p in thin:  # not enough history yet: keep last numbers until it builds up
+        print(f"  {p}: only {counts[p]} games so far (< {args.min_history}), keeping the previous numbers for now")
+    records = [r for r in records if r["player"] not in thin]
     have = {r["player"] for r in records}
     if not have:
         sys.exit(f"No fresh data for anyone, so {args.data} was left as it is.")
@@ -534,7 +674,7 @@ def cmd_fetch(args):
     with open(args.data, "w", encoding="utf-8") as f:
         json.dump({"asOf": time.strftime("%d %b %Y"), "players": roster, "rows": rows}, f, separators=(",", ":"))
     print(f"Wrote {args.data} ({len(rows)} rows)")
-    if len(have) < len(roster):
+    if len(fresh) < len(roster):
         sys.exit(2)  # partial refresh: data written, but tell the pipeline
 
 
@@ -1106,7 +1246,14 @@ def main():
     p = sub.add_parser("fetch", help="download tracker.gg match history and rebuild the data file")
     common(p)
     p.add_argument("--cache", default=os.path.join(here, "cache"), help="raw download cache (default ./cache)")
-    p.add_argument("--pages", type=int, default=8, help="match-history pages per player, 20 games each (default 8)")
+    p.add_argument("--source", choices=["auto", "henrik", "tracker"], default="auto",
+                   help="auto (default): HenrikDev API if HENRIKDEV_API_KEY is set, else tracker.gg")
+    p.add_argument("--region", default="eu", help="HenrikDev region: eu, na, ap, kr, latam, br (default eu)")
+    p.add_argument("--history", default=os.path.join(here, "data", "history"),
+                   help="where HenrikDev match history accumulates (default data/history, committed)")
+    p.add_argument("--min-history", type=int, default=40,
+                   help="keep a player's previous numbers until they have this many games (default 40)")
+    p.add_argument("--pages", type=int, default=8, help="tracker.gg match-history pages per player, 20 games each (default 8)")
     p.add_argument("--delay", type=float, default=2.0, help="seconds between requests (default 2)")
     p.add_argument("--half-life", type=float, default=90, help="days until a game counts half (default 90, 0 = no weighting)")
     p.set_defaults(func=cmd_fetch)
