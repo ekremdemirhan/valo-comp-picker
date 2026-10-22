@@ -634,7 +634,15 @@ def build_rows(records, players):
 
 def render_ui(players, rows, as_of, meta):
     data = {"players": players, "rows": rows, "asOf": as_of, "roles": ROLES, "meta": meta, "icons": AGENT_ICONS}
-    return UI_TEMPLATE.replace("__DATA__", json.dumps(data, separators=(",", ":")))
+    page = UI_TEMPLATE.replace("__DATA__", json.dumps(data, separators=(",", ":")))
+    logo = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "logo.png")
+    if os.path.exists(logo):  # embedded, so the page stays a single file
+        import base64
+        with open(logo, "rb") as f:
+            uri = "data:image/png;base64," + base64.b64encode(f.read()).decode()
+        page = page.replace("<!--LOGO-->", f'<img class="logo" src="{uri}" alt="Squad logo">')
+        page = page.replace("<!--FAVICON-->", f'<link rel="icon" href="{uri}">')
+    return page
 
 
 def cmd_ui(args):
@@ -653,6 +661,7 @@ def cmd_ui(args):
 
 
 UI_TEMPLATE = r"""<title>Squad Comp Picker</title>
+<!--FAVICON-->
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
@@ -667,6 +676,10 @@ UI_TEMPLATE = r"""<title>Squad Comp Picker</title>
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 var(--body)}
 .wrap{max-width:1120px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top{display:flex;gap:16px;align-items:center;margin-bottom:22px}
+.topt{min-width:0}.top .lead{margin-bottom:0}
+.logo{width:76px;height:auto;flex:none;border-radius:12px}
+@media (max-width:520px){.logo{width:56px}}
 h1{margin:0;font:700 36px/1 var(--display);letter-spacing:.02em;text-transform:uppercase}
 .lead{margin:6px 0 22px;color:var(--mut)}
 .grid{display:grid;grid-template-columns:300px minmax(0,1fr);gap:20px;align-items:start}
@@ -746,8 +759,7 @@ td.pn{font-weight:600}
 </style>
 
 <main class="wrap">
-  <h1>Comp Picker</h1>
-  <p class="lead" id="lead"></p>
+  <header class="top"><!--LOGO--><div class="topt"><h1>Comp Picker</h1><p class="lead" id="lead"></p></div></header>
   <div class="grid">
     <section class="panel" aria-label="Lineup">
       <div>
