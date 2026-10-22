@@ -909,7 +909,7 @@ function render() {
   if (!comps.length) { out.innerHTML = `<div class="msg">Not enough agent data to build a composition.</div>`; return; }
   const byRole = picks => [...picks].sort((a, b) => (ORDER[a.o.role] ?? 9) - (ORDER[b.o.role] ?? 9));
   const best = comps[0];
-  const iglLine = igl != null ? `IGL: <b>${esc(short(DATA.players[igl]))}</b>` : `IGL: <span class="warn">not set, pick one on the left</span>`;
+  const iglLine = igl != null ? `IGL: <b>${esc(short(DATA.players[igl]))}</b>` : `IGL: <span class="warn">not set, choose one in the IGL dropdown</span>`;
   let html = `<div class="head"><h2>${esc(state.map)}</h2><span class="igl">${iglLine}</span></div>`;
   if (n < 5) html += `<p class="warn">${n} players ticked. Showing a ${n}-player partial composition; pro-meta checks need all five.</p>`;
   if (mode === "loose" && META.maps[state.map] && state.metaW > 0 && n === 5)
