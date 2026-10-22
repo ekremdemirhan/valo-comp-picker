@@ -424,7 +424,28 @@ def closest_pro(meta, map_name, agents):
     return best
 
 
-def compositions(model, map_name, players, igl, igl_duelist_penalty, meta, meta_weight=1.0, top=3, per_player=8):
+# Pro IGLs (VLR team captains, VCT 2026) play controller 42%, initiator 40%, sentinel 11%, duelist 7% of rounds.
+ROLE_PREF = {"Controller": 0, "Initiator": 1, "Sentinel": 2, "Duelist": 3}
+
+
+def suggest_igl(model, map_name, players, callers, igl_pen, meta, meta_weight=1.0, top=3):
+    """Try each candidate as IGL and keep the one whose best comp scores highest (ties: controller, then
+    initiator). Candidates are the usual callers in the lineup, or everyone if none is playing."""
+    pool = [p for p in players if p in callers] or list(players)
+    best = None
+    for p in pool:
+        comps, mode, opts = compositions(model, map_name, players, p, igl_pen, meta, meta_weight, top=top)
+        if not comps:
+            continue
+        role = next(o["role"] for q, o in comps[0]["picks"] if q == p)
+        key = comps[0]["total"] - ROLE_PREF.get(role, 4) * 0.01
+        if best is None or key > best["key"]:
+            best = {"igl": p, "key": key, "comps": comps, "mode": mode, "opts": opts,
+                    "from_callers": any(q in callers for q in players)}
+    return best
+
+
+def compositions(model, map_name, players, igl, igl_pen, meta, meta_weight=1.0, top=3, per_player=8):
     """All valid agent assignments for exactly these players, best first.
     With pro-meta data for the map, the role structure must be one pros run there (>= 3% of games)."""
     opts = {p: model.options(p, map_name)[:per_player] for p in players}
@@ -435,7 +456,7 @@ def compositions(model, map_name, players, igl, igl_duelist_penalty, meta, meta_
             agents = [o["agent"] for o in combo]
             if len(set(agents)) < len(agents):
                 continue
-            own = sum(o["score"] - (igl_duelist_penalty if p == igl and o["role"] == "Duelist" else 0)
+            own = sum(o["score"] - (igl_pen.get(o["role"], 0) if p == igl else 0)
                       for p, o in zip(players, combo)) / len(players)
             bonus, st = 0.0, None
             if has_meta:
@@ -532,22 +553,38 @@ def comp_report(args):
     missing = [p for p in players if not model.P[p].n]
     if missing:
         return [f"No match data for: {', '.join(missing)}. Check their tracker.gg profile is public."], False
-    igl = resolve_player(args.igl, roster) if args.igl and args.igl.strip().lower() not in ("", "none", "not set") else None
-    if igl and igl not in players:
-        return [f"The IGL ({short(igl)}) isn't one of the selected players. Tick them too, or pick another IGL."], False
     meta = load_meta(args.meta)
-    comps, mode, opts = compositions(model, map_name, players, igl, args.igl_duelist_penalty if igl else 0,
-                                     meta, args.meta_weight, top=args.alts + 1)
+    igl_pen = {"Duelist": args.igl_duelist_penalty, "Sentinel": args.igl_sentinel_penalty}
+    choice = (args.igl or "auto").strip().lower()
+    suggested = None
+    if choice == "auto":
+        callers = set(load_squad(args.squad).get("callers", []))
+        suggested = suggest_igl(model, map_name, players, callers, igl_pen, meta, args.meta_weight, top=args.alts + 1)
+        if not suggested:
+            return ["Couldn't build a composition (not enough agent data)."], False
+        igl, comps, mode, opts = suggested["igl"], suggested["comps"], suggested["mode"], suggested["opts"]
+    else:
+        igl = None if choice in ("", "none", "not set") else resolve_player(args.igl, roster)
+        if igl and igl not in players:
+            return [f"The IGL ({short(igl)}) isn't one of the selected players. Tick them too, or pick another IGL."], False
+        comps, mode, opts = compositions(model, map_name, players, igl, igl_pen if igl else {},
+                                         meta, args.meta_weight, top=args.alts + 1)
     if not comps:
         return ["Couldn't build a composition (not enough agent data)."], False
+    igl_line = "not set"
+    if igl:
+        agent = next(o["agent"] for q, o in comps[0]["picks"] if q == igl)
+        igl_line = f"{short(igl)} on {agent}"
+        if suggested:
+            igl_line += " (suggested" + ("" if suggested["from_callers"] else "; none of the usual callers is playing") + ")"
 
     out = []
     if md:
         out += [f"## {map_name}: {', '.join(short(p) for p in players)}", "",
-                f"**IGL:** {short(igl)}" if igl else "**IGL:** not set", ""]
+                f"**IGL:** {igl_line}", ""]
     else:
         out += [f"\n{map_name.upper()}  ·  {', '.join(short(p) for p in players)}",
-                f"IGL: {short(igl)}" if igl else "IGL: not set (use --igl NAME)"]
+                f"IGL: {igl_line}"]
     if len(players) < 5:
         out.append(f"Note: {len(players)} players, so this is a partial comp and the pro-meta checks are skipped.")
     elif map_name not in meta["maps"]:
@@ -632,8 +669,8 @@ def build_rows(records, players):
             for k, a in agg.items() if a[1] > 0.001]
 
 
-def render_ui(players, rows, as_of, meta):
-    data = {"players": players, "rows": rows, "asOf": as_of, "roles": ROLES, "meta": meta, "icons": AGENT_ICONS}
+def render_ui(players, rows, as_of, meta, callers=()):
+    data = {"players": players, "rows": rows, "asOf": as_of, "roles": ROLES, "meta": meta, "icons": AGENT_ICONS, "callers": list(callers)}
     page = UI_TEMPLATE.replace("__DATA__", json.dumps(data, separators=(",", ":")))
     logo = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "logo.png")
     if os.path.exists(logo):  # embedded, so the page stays a single file
@@ -647,7 +684,8 @@ def render_ui(players, rows, as_of, meta):
 
 def cmd_ui(args):
     data = load_data(args.data)
-    page = render_ui(data["players"], data["rows"], data["asOf"], load_meta(args.meta))
+    callers = load_squad(args.squad).get("callers", []) if os.path.exists(args.squad) else []
+    page = render_ui(data["players"], data["rows"], data["asOf"], load_meta(args.meta), callers)
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
     with open(args.out, "w", encoding="utf-8") as f:
         f.write('<!doctype html><html lang="en"><head><meta charset="utf-8">'
@@ -715,7 +753,7 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .results{display:flex;flex-direction:column;gap:18px;min-width:0}
 .head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px}
 .head h2{margin:0;font:700 30px/1 var(--display);text-transform:uppercase;letter-spacing:.03em}
-.igl{font-size:14px}.igl b{color:var(--accent)}
+.igl{font-size:14px}.sugg{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--mut);margin-left:4px}.igl b{color:var(--accent)}
 .msg{background:var(--card);border:1px dashed var(--line);border-radius:8px;padding:28px 20px;color:var(--mut);text-align:center}
 .warn{color:var(--duel);font-size:13px;margin:0}
 .cards{display:flex;flex-wrap:wrap;justify-content:center;gap:12px}
@@ -785,7 +823,7 @@ td.pn{font-weight:600}
         </select>
       </div>
       <div class="opts">
-        <label class="chk"><input type="checkbox" id="iglDuel" checked><span>Keep the IGL off duelist</span></label>
+        <label class="chk"><input type="checkbox" id="iglDuel" checked><span>Keep the IGL on controller or initiator where possible</span></label>
         <label class="chk"><input type="checkbox" id="groupOnly"><span>Only count games where 3+ of us played together</span></label>
       </div>
     </section>
@@ -798,7 +836,10 @@ td.pn{font-weight:600}
   each card are also weighted toward recent games.<br><br>
   <b>Pro meta.</b> The team's role structure must be one that pros actually run on this map (at least 3% of games), and rarer
   structures cost points. Double sentinel is normal on Sunset but almost never seen on Haven or Lotus. Agents pros pick
-  on the map get a bonus, and matching a top pro comp adds a little more. <span id="metaSrc"></span></p>
+  on the map get a bonus, and matching a top pro comp adds a little more. <span id="metaSrc"></span><br><br>
+  <b>IGL.</b> Pro IGLs mostly play controller (42% of rounds) or initiator (40%), rarely sentinel (11%) and almost never
+  duelist (7%). So an IGL on duelist costs 4 points and on sentinel 1.5. <i>Auto</i> tries each usual caller in the lineup
+  (everyone, if none is playing) and suggests the one whose best comp scores highest.</p>
 </main>
 
 <script>
@@ -807,7 +848,10 @@ const META = DATA.meta || {maps: {}, pool: []};
 const ROLES = DATA.roles, LETTER = {Duelist: "D", Initiator: "I", Controller: "C", Sentinel: "S"};
 const ORDER = {Duelist: 0, Initiator: 1, Controller: 2, Sentinel: 3};
 const REQ = ["Duelist", "Initiator", "Controller", "Sentinel"];
-const MIN_AGENT_GAMES = 6, MIN_RECENT = 1.5, PENALTY = 4, MIN_STRUCT_SHARE = 0.03;
+const MIN_AGENT_GAMES = 6, MIN_RECENT = 1.5, MIN_STRUCT_SHARE = 0.03;
+// Pro IGLs (VLR team captains, 2026) play controller 42%, initiator 40%, sentinel 11%, duelist 7% of rounds.
+const IGL_PENALTY = {Duelist: 4, Sentinel: 1.5};
+const CALLERS = new Set((DATA.callers || []).map(id => DATA.players.indexOf(id)).filter(i => i >= 0));
 const short = id => id.split("#")[0];
 const ICONS = DATA.icons || {};
 const icon = (a, cls = "ai") => ICONS[a] ? `<img class="${cls}" src="https://media.valorant-api.com/agents/${ICONS[a]}/displayicon.png" alt="" loading="lazy" onerror="this.remove()">` : "";
@@ -908,7 +952,7 @@ function compositions(M, m, players, igl, pen, metaW) {
       for (const o of opts[i]) {
         if (used.has(o.agent)) continue;
         used.add(o.agent); pick.push(o);
-        rec(i + 1, total + o.score - (players[i] === igl && o.role === "Duelist" ? pen : 0));
+        rec(i + 1, total + o.score - (players[i] === igl ? (pen[o.role] || 0) : 0));
         pick.pop(); used.delete(o.agent);
       }
     })(0, 0);
@@ -945,20 +989,38 @@ function sync() {
   $("iglDuel").checked = state.iglDuel; $("groupOnly").checked = state.groupOnly; $("metaW").value = String(state.metaW);
 }
 
+// Try each candidate as IGL; keep the one whose best comp scores highest
+// (ties: the IGL on controller, then initiator). Usual callers first, everyone if none is playing.
+const ROLE_PREF = {Controller: 0, Initiator: 1, Sentinel: 2, Duelist: 3};
+function suggestIgl(M, m, players, pen, metaW) {
+  const callers = players.filter(p => CALLERS.has(p)), pool = callers.length ? callers : players;
+  let best = null;
+  for (const p of pool) {
+    const r = compositions(M, m, players, p, pen, metaW);
+    if (!r.comps.length) continue;
+    const role = r.comps[0].picks.find(x => x.p === p).o.role;
+    const key = r.comps[0].total - (ROLE_PREF[role] ?? 4) * 0.01;
+    if (!best || key > best.key) best = {igl: p, key, role, r, fromCallers: callers.length > 0};
+  }
+  return best;
+}
+
 function renderIglSelect(players) {
   const sel = $("igl");
-  if (!players.length) { sel.innerHTML = `<option>Tick players first</option>`; sel.disabled = true; return null; }
+  if (!players.length) { sel.innerHTML = `<option>Tick players first</option>`; sel.disabled = true; return {mode: "none"}; }
   sel.disabled = false;
-  const saved = state.iglByMap[state.map], chosen = players.includes(saved) ? saved : null;
-  sel.innerHTML = `<option value="">Not set</option>` + players.map(p => `<option value="${p}">${esc(short(DATA.players[p]))}</option>`).join("");
-  sel.value = chosen == null ? "" : String(chosen);
-  return chosen;
+  const saved = state.iglByMap[state.map];
+  const mode = saved === "none" ? "none" : players.includes(saved) ? "manual" : "auto";
+  sel.innerHTML = `<option value="auto">Auto: suggest the best caller</option><option value="none">Not set</option>` +
+    players.map(p => `<option value="${p}">${esc(short(DATA.players[p]))}${CALLERS.has(p) ? " (usual caller)" : ""}</option>`).join("");
+  sel.value = mode === "manual" ? String(saved) : mode;
+  return {mode, igl: mode === "manual" ? saved : null};
 }
 
 function render() {
   const n = state.sel.length, out = $("results");
   const picked = DATA.players.map((_, i) => i).filter(i => state.sel.includes(i));
-  const igl = renderIglSelect(picked);
+  const iglSel = renderIglSelect(picked);
   $("count").textContent = `${n} / 5`;
   $("count").className = "count" + (n === 5 ? "" : " bad");
   if (n < 2) { out.innerHTML = `<div class="msg">Tick at least two players (five for a full team) to see a composition for ${esc(state.map)}.</div>`; return; }
@@ -966,11 +1028,21 @@ function render() {
   const M = model(state.groupOnly), players = picked;
   const noData = players.filter(p => !(M.S.get(`P|${p}`) || {}).n);
   if (noData.length) { out.innerHTML = `<div class="msg">No games for ${noData.map(p => esc(short(DATA.players[p]))).join(", ")} with this filter. Turn off “Only count games where 3+ of us played together”.</div>`; return; }
-  const {comps, mode, opts} = compositions(M, state.map, players, igl, state.iglDuel && igl != null ? PENALTY : 0, state.metaW);
+  const pen = state.iglDuel ? IGL_PENALTY : {};
+  let igl = iglSel.igl ?? null, sugg = null, result;
+  if (iglSel.mode === "auto") {
+    sugg = suggestIgl(M, state.map, players, pen, state.metaW);
+    igl = sugg ? sugg.igl : null;
+    result = sugg ? sugg.r : compositions(M, state.map, players, null, {}, state.metaW);
+  } else result = compositions(M, state.map, players, igl, iglSel.mode === "manual" ? pen : {}, state.metaW);
+  const {comps, mode, opts} = result;
   if (!comps.length) { out.innerHTML = `<div class="msg">Not enough agent data to build a composition.</div>`; return; }
   const byRole = picks => [...picks].sort((a, b) => (ORDER[a.o.role] ?? 9) - (ORDER[b.o.role] ?? 9));
   const best = comps[0];
-  const iglLine = igl != null ? `IGL: <b>${esc(short(DATA.players[igl]))}</b>` : `IGL: <span class="warn">not set, choose one in the IGL dropdown</span>`;
+  const iglRole = igl != null ? (best.picks.find(x => x.p === igl) || {o: {}}).o : null;
+  const iglLine = igl == null ? `IGL: <span class="warn">not set</span>`
+    : `IGL: <b>${esc(short(DATA.players[igl]))}</b>${iglRole && iglRole.agent ? ` on ${esc(iglRole.agent)}` : ""}` +
+      (sugg ? ` <span class="sugg">suggested${sugg.fromCallers ? "" : ", none of the usual callers is playing"}</span>` : "");
   let html = `<div class="head"><h2>${esc(state.map)}</h2><span class="igl">${iglLine}</span></div>`;
   if (n < 5) html += `<p class="warn">${n} players ticked. Showing a ${n}-player partial composition; pro-meta checks need all five.</p>`;
   if (mode === "loose" && META.maps[state.map] && state.metaW > 0 && n === 5)
@@ -1010,7 +1082,7 @@ $("players").addEventListener("change", e => {
   state.sel = e.target.checked ? [...new Set([...state.sel, i])] : state.sel.filter(x => x !== i);
   save(); render();
 });
-$("igl").addEventListener("change", e => { if (e.target.value === "") delete state.iglByMap[state.map]; else state.iglByMap[state.map] = +e.target.value; save(); render(); });
+$("igl").addEventListener("change", e => { const v = e.target.value; if (v === "auto") delete state.iglByMap[state.map]; else state.iglByMap[state.map] = v === "none" ? "none" : +v; save(); render(); });
 $("metaW").addEventListener("change", e => { state.metaW = +e.target.value; save(); render(); });
 $("iglDuel").addEventListener("change", e => { state.iglDuel = e.target.checked; save(); render(); });
 $("groupOnly").addEventListener("change", e => { state.groupOnly = e.target.checked; save(); render(); });
@@ -1043,10 +1115,12 @@ def main():
     common(p)
     p.add_argument("--map", required=True, help="map name, e.g. haven")
     p.add_argument("--players", required=True, help='comma-separated names, e.g. "merhaba, bigbeko, kivo, unsent, pasha"')
-    p.add_argument("--igl", help="who calls on this map (one of the players)")
+    p.add_argument("--igl", default="auto",
+                   help='who calls: a player name, "auto" (default: suggest the best caller) or "none"')
     p.add_argument("--meta-weight", type=float, default=1.0, help="how much the pro meta counts: 0 off, 1 normal, 2 strong")
     p.add_argument("--alts", type=int, default=2, help="alternative compositions to show (default 2)")
     p.add_argument("--igl-duelist-penalty", type=float, default=4.0, help="score penalty for the IGL on duelist (default 4)")
+    p.add_argument("--igl-sentinel-penalty", type=float, default=1.5, help="score penalty for the IGL on sentinel (default 1.5)")
     p.add_argument("--min-agent-games", type=int, default=6, help="min games on an agent to consider it (default 6)")
     p.add_argument("--markdown", action="store_true", help="print Markdown (used by the GitHub pipeline)")
     p.add_argument("--summary", help="also append the output to this file (the pipeline passes $GITHUB_STEP_SUMMARY)")

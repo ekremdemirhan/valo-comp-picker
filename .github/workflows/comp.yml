@@ -40,10 +40,10 @@ on:
         description: Draven esq
         type: boolean
       igl:
-        description: IGL (one of the ticked players)
+        description: "IGL: Auto suggests the best caller, or pick one of the ticked players"
         type: choice
-        default: Not set
-        options: [Not set, MERHABA BEN MERT, Sriderya, KivoChan, bigbeko, shapeshifter, Sphooky, unsent181, PASHA, Draven esq]
+        default: Auto
+        options: [Auto, Not set, MERHABA BEN MERT, Sriderya, KivoChan, bigbeko, shapeshifter, Sphooky, unsent181, PASHA, Draven esq]
       meta:
         description: Follow the pro meta
         type: choice
@@ -89,6 +89,6 @@ jobs:
           add "$P_PASHA"        "PASHA#ulan"
           add "$P_DRAVEN"       "Draven esq#EUW"
           case "$META" in Off) w=0 ;; Strong) w=2 ;; *) w=1 ;; esac
-          igl="$IGL"; [ "$igl" = "Not set" ] && igl=""
+          igl="$IGL"; [ "$igl" = "Not set" ] && igl="none"; [ "$igl" = "Auto" ] && igl="auto"
           python valo_planner.py comp --map "$MAP" --players "$players" --igl "$igl" \
             --meta-weight "$w" --markdown --summary "$GITHUB_STEP_SUMMARY"

@@ -30,7 +30,10 @@ The data refreshes every Monday morning by itself.
 - **Pro meta:** the team's role setup must be one pros run on that map in at least 3% of games
   (so double sentinel is fine on Sunset but not on Haven), pro-picked agents get a bonus, and
   matching a top pro comp adds a little. "Follow the pro meta: Off" turns this off.
-- **IGL:** the IGL is kept off duelist (a 4-point penalty) unless their duelist is clearly better.
+- **IGL:** pro IGLs mostly play controller (42% of rounds) or initiator (40%), rarely sentinel (11%) and almost
+  never duelist (7%), so an IGL on duelist costs 4 points and on sentinel 1.5. With **Auto** (the default), the
+  tool tries each usual caller in the lineup (`callers` in `squad.json`; everyone if none is playing) and
+  suggests the one whose best comp scores highest. You can always pick the IGL yourself.
 
 ## Setup (once)
 
@@ -43,7 +46,7 @@ The data refreshes every Monday morning by itself.
 
 ## Changing things
 
-- **Add or remove a player:** edit `squad.json`, and add/remove their checkbox and line in
+- **Add or remove a player:** edit `squad.json` (and `callers` there if they plan rounds), and add/remove their checkbox and line in
   `.github/workflows/comp.yml`. Then run **Refresh data and publish page**.
 - **New pro meta** (after a big patch or event): `meta.json` holds role setups, agent pick rates and
   top comps per map. Ask Claude to refresh it from VLR.gg, or edit by hand.
