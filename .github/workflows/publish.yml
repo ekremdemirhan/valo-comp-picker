@@ -1,0 +1,80 @@
+name: Refresh data and publish page
+
+# Every Monday: pull fresh tracker.gg history, commit data/squad_data.json, rebuild the picker page
+# and publish it on GitHub Pages. Also runs on demand (Actions tab → Run workflow) and whenever the
+# roster, meta or tool changes on main (then it only rebuilds the page, without fetching).
+on:
+  schedule:
+    - cron: "41 4 * * 1" # Mondays 04:41 UTC (07:41 in Bucharest during summer time, 06:41 in winter)
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [squad.json, meta.json, valo_planner.py, data/**]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Fetch tracker.gg match history
+        id: fetch
+        if: github.event_name != 'push'
+        continue-on-error: true
+        run: |
+          pip install -r requirements.txt
+          python valo_planner.py fetch
+
+      - name: Note a failed or partial refresh
+        if: steps.fetch.outcome == 'failure'
+        run: |
+          {
+            echo "### Data refresh incomplete"
+            echo "tracker.gg didn't return fresh data for everyone (Cloudflare can block GitHub's servers)."
+            echo "The page was still published, using the newest data available."
+            echo "To refresh by hand: run \`python valo_planner.py fetch\` on your PC and push \`data/squad_data.json\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit refreshed data
+        if: github.event_name != 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/squad_data.json
+          if git diff --cached --quiet; then
+            echo "No data changes."
+          else
+            git commit -m "Refresh squad data"
+            git push
+          fi
+
+      - name: Build the picker page
+        run: python valo_planner.py ui --out _site/index.html
+
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

@@ -1,0 +1,94 @@
+name: Pick a comp
+run-name: "Comp for ${{ inputs.map }}"
+
+# Actions tab → "Pick a comp" → "Run workflow". Tick the players, pick the map and IGL.
+# The result shows up as the run's summary. To add a player: add them to squad.json AND
+# add a checkbox below plus a line in the "players" block of the step.
+on:
+  workflow_dispatch:
+    inputs:
+      map:
+        description: Map
+        type: choice
+        default: Haven
+        options: [Abyss, Bind, Corrode, Haven, Lotus, Summit, Sunset, Ascent, Breeze, Fracture, Icebox, Pearl, Split]
+      merhaba:
+        description: MERHABA BEN MERT
+        type: boolean
+      sriderya:
+        description: Sriderya
+        type: boolean
+      kivochan:
+        description: KivoChan
+        type: boolean
+      bigbeko:
+        description: bigbeko
+        type: boolean
+      shapeshifter:
+        description: shapeshifter
+        type: boolean
+      sphooky:
+        description: Sphooky
+        type: boolean
+      unsent181:
+        description: unsent181
+        type: boolean
+      pasha:
+        description: PASHA
+        type: boolean
+      draven:
+        description: Draven esq
+        type: boolean
+      igl:
+        description: IGL (one of the ticked players)
+        type: choice
+        default: Not set
+        options: [Not set, MERHABA BEN MERT, Sriderya, KivoChan, bigbeko, shapeshifter, Sphooky, unsent181, PASHA, Draven esq]
+      meta:
+        description: Follow the pro meta
+        type: choice
+        default: Normal
+        options: [Normal, Strong, "Off"]
+
+permissions:
+  contents: read
+
+jobs:
+  comp:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Pick the comp
+        env:
+          MAP: ${{ inputs.map }}
+          IGL: ${{ inputs.igl }}
+          META: ${{ inputs.meta }}
+          P_MERHABA: ${{ inputs.merhaba }}
+          P_SRIDERYA: ${{ inputs.sriderya }}
+          P_KIVOCHAN: ${{ inputs.kivochan }}
+          P_BIGBEKO: ${{ inputs.bigbeko }}
+          P_SHAPESHIFTER: ${{ inputs.shapeshifter }}
+          P_SPHOOKY: ${{ inputs.sphooky }}
+          P_UNSENT181: ${{ inputs.unsent181 }}
+          P_PASHA: ${{ inputs.pasha }}
+          P_DRAVEN: ${{ inputs.draven }}
+        run: |
+          players=""
+          add() { if [ "$1" = "true" ]; then players="${players:+$players,}$2"; fi; }
+          add "$P_MERHABA"      "MERHABA BEN MERT#B71"
+          add "$P_SRIDERYA"     "Sriderya#EUW"
+          add "$P_KIVOCHAN"     "KivoChan#Kiv"
+          add "$P_BIGBEKO"      "bigbeko#7678"
+          add "$P_SHAPESHIFTER" "shapeshifter#4010"
+          add "$P_SPHOOKY"      "Sphooky#EUW"
+          add "$P_UNSENT181"    "unsent181#EUW"
+          add "$P_PASHA"        "PASHA#ulan"
+          add "$P_DRAVEN"       "Draven esq#EUW"
+          case "$META" in Off) w=0 ;; Strong) w=2 ;; *) w=1 ;; esac
+          igl="$IGL"; [ "$igl" = "Not set" ] && igl=""
+          python valo_planner.py comp --map "$MAP" --players "$players" --igl "$igl" \
+            --meta-weight "$w" --markdown --summary "$GITHUB_STEP_SUMMARY"
