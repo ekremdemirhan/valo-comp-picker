@@ -45,6 +45,38 @@ ROLES = {
     "Sage": "Sentinel", "Cypher": "Sentinel", "Killjoy": "Sentinel", "Chamber": "Sentinel",
     "Deadlock": "Sentinel", "Vyse": "Sentinel", "Veto": "Sentinel",
 }
+# Agent icon ids on valorant-api.com (https://media.valorant-api.com/agents/<id>/displayicon.png)
+AGENT_ICONS = {
+    "Astra": "41fb69c1-4189-7b37-f117-bcaf1e96f1bf",
+    "Breach": "5f8d3a7f-467b-97f3-062c-13acf203c006",
+    "Brimstone": "9f0d8ba9-4140-b941-57d3-a7ad57c6b417",
+    "Chamber": "22697a3d-45bf-8dd7-4fec-84a9e28c69d7",
+    "Clove": "1dbf2edd-4729-0984-3115-daa5eed44993",
+    "Cypher": "117ed9e3-49f3-6512-3ccf-0cada7e3823b",
+    "Deadlock": "cc8b64c8-4b25-4ff9-6e7f-37b4da43d235",
+    "Fade": "dade69b4-4f5a-8528-247b-219e5a1facd6",
+    "Gekko": "e370fa57-4757-3604-3648-499e1f642d3f",
+    "Harbor": "95b78ed7-4637-86d9-7e41-71ba8c293152",
+    "Iso": "0e38b510-41a8-5780-5e8f-568b2a4f2d6c",
+    "Jett": "add6443a-41bd-e414-f6ad-e58d267f4e95",
+    "KAY/O": "601dbbe7-43ce-be57-2a40-4abd24953621",
+    "Killjoy": "1e58de9c-4950-5125-93e9-a0aee9f98746",
+    "Miks": "7c8a4701-4de6-9355-b254-e09bc2a34b72",
+    "Neon": "bb2a4828-46eb-8cd1-e765-15848195d751",
+    "Omen": "8e253930-4c05-31dd-1b6c-968525494517",
+    "Phoenix": "eb93336a-449b-9c1b-0a54-a891f7921d69",
+    "Raze": "f94c3b30-42be-e959-889c-5aa313dba261",
+    "Reyna": "a3bfb853-43b2-7238-a4f1-ad90e9e46bcc",
+    "Sage": "569fdd95-4d10-43ab-ca70-79becc718b46",
+    "Skye": "6f2a04ca-43e0-be17-7f36-b3908627744d",
+    "Sova": "320b2a48-4d9b-a075-30f1-1f93a9b638fa",
+    "Tejo": "b444168c-4e35-8076-db47-ef9bf368f384",
+    "Veto": "92eeef5d-43b5-1d4a-8d03-b3927a09034b",
+    "Viper": "707eab51-4836-f488-046a-cda6bf494859",
+    "Vyse": "efba5359-4016-a1e5-7626-b1ae76895940",
+    "Waylay": "df1cb487-4902-002e-5c17-d28e83e78588",
+    "Yoru": "7f94d92c-4234-0a36-9646-3a87eb8b5c89",
+}
 REQUIRED_ROLES = ["Duelist", "Initiator", "Controller", "Sentinel"]
 ROLE_ORDER = {r: i for i, r in enumerate(REQUIRED_ROLES)}
 MAPS = ["Abyss", "Ascent", "Bind", "Breeze", "Corrode", "Fracture", "Haven", "Icebox", "Lotus", "Pearl",
@@ -601,7 +633,7 @@ def build_rows(records, players):
 
 
 def render_ui(players, rows, as_of, meta):
-    data = {"players": players, "rows": rows, "asOf": as_of, "roles": ROLES, "meta": meta}
+    data = {"players": players, "rows": rows, "asOf": as_of, "roles": ROLES, "meta": meta, "icons": AGENT_ICONS}
     return UI_TEMPLATE.replace("__DATA__", json.dumps(data, separators=(",", ":")))
 
 
@@ -672,8 +704,21 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .igl{font-size:14px}.igl b{color:var(--accent)}
 .msg{background:var(--card);border:1px dashed var(--line);border-radius:8px;padding:28px 20px;color:var(--mut);text-align:center}
 .warn{color:var(--duel);font-size:13px;margin:0}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
-.card{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--mut);border-radius:8px;padding:12px 12px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.cards{display:flex;flex-wrap:wrap;justify-content:center;gap:12px}
+.cards .card{flex:0 1 calc((100% - 24px) / 3)}
+@media (max-width:640px){.cards .card{flex-basis:100%}}
+.ch{display:flex;gap:12px;align-items:center;min-width:0}
+.ai{width:60px;height:60px;flex:none;border-radius:8px;background:var(--soft);object-fit:cover}
+.ai.sm{width:22px;height:22px;border-radius:4px;vertical-align:-6px;margin-right:6px;background:none}
+.kv{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-top:10px;padding:8px 0;border-block:1px solid var(--line)}
+.kv div{display:flex;flex-direction:column;align-items:center;min-width:0}
+.kv b{font:600 16px var(--body);font-variant-numeric:tabular-nums}
+.kv span{font:500 10px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+.kvh{font:500 10px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin-top:10px}
+.here{font-size:12px;color:var(--mut);margin-top:6px;font-variant-numeric:tabular-nums}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px}
+.foot .sc{font:500 12px var(--mono);color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--mut);border-radius:8px;padding:12px;display:flex;flex-direction:column;min-width:0}
 .card.Duelist{border-top-color:var(--duel)}.card.Initiator{border-top-color:var(--init)}.card.Controller{border-top-color:var(--ctrl)}.card.Sentinel{border-top-color:var(--sent)}
 .role{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.08em}
 .Duelist .role{color:var(--duel)}.Initiator .role{color:var(--init)}.Controller .role{color:var(--ctrl)}.Sentinel .role{color:var(--sent)}
@@ -681,7 +726,7 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .who{font-weight:600;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .iglb{font:600 10px var(--mono);letter-spacing:.06em;background:var(--accent);color:var(--on-accent);padding:1px 6px;border-radius:3px}
 .meta{font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums;margin-top:4px}
-.pill{display:inline-block;font:500 10px var(--mono);text-transform:uppercase;letter-spacing:.05em;padding:1px 6px;border-radius:999px;border:1px solid currentColor;margin-top:6px;align-self:flex-start}
+.pill{display:inline-block;font:500 10px var(--mono);text-transform:uppercase;letter-spacing:.05em;padding:1px 6px;border-radius:999px;border:1px solid currentColor}
 .pill.solid{color:var(--init)}.pill.some{color:var(--sent)}.pill.thin{color:var(--duel)}
 h3{margin:0 0 8px;font:600 18px var(--display);letter-spacing:.06em;text-transform:uppercase}
 .alts{display:flex;flex-direction:column;gap:6px}
@@ -736,7 +781,8 @@ td.pn{font-weight:600}
   <p class="note"><b>How it picks.</b> Each player gets a score per agent on the chosen map from our own games: half
   estimated win rate, half impact (ACS, K/D and ADR compared with others on the same role). Recent games count more
   (a game's weight halves every 90 days) and small samples are pulled toward the player's overall form, so a 3–0 streak
-  doesn't dominate. An agent needs 6+ games, some of them recent, to be considered.<br><br>
+  doesn't dominate. An agent needs 6+ games, some of them recent, to be considered. The win rate, ACS and K/D on
+  each card are also weighted toward recent games.<br><br>
   <b>Pro meta.</b> The team's role structure must be one that pros actually run on this map (at least 3% of games), and rarer
   structures cost points. Double sentinel is normal on Sunset but almost never seen on Haven or Lotus. Agents pros pick
   on the map get a bonus, and matching a top pro comp adds a little more. <span id="metaSrc"></span></p>
@@ -750,6 +796,8 @@ const ORDER = {Duelist: 0, Initiator: 1, Controller: 2, Sentinel: 3};
 const REQ = ["Duelist", "Initiator", "Controller", "Sentinel"];
 const MIN_AGENT_GAMES = 6, MIN_RECENT = 1.5, PENALTY = 4, MIN_STRUCT_SHARE = 0.03;
 const short = id => id.split("#")[0];
+const ICONS = DATA.icons || {};
+const icon = (a, cls = "ai") => ICONS[a] ? `<img class="${cls}" src="https://media.valorant-api.com/agents/${ICONS[a]}/displayicon.png" alt="" loading="lazy" onerror="this.remove()">` : "";
 const tagOf = id => id.split("#")[1] || "";
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 const roleOf = a => ROLES[a] || "Flex";
@@ -768,13 +816,13 @@ function model(groupOnly) {
   for (const [k, t] of Object.entries(byRole))
     base[k] = t.n >= 15 && t.w > 0 ? {acs: t.acs / t.w || gb.acs, kd: t.kd / t.w || gb.kd, adr: t.adr / t.w || gb.adr} : gb;
   const S = new Map(), agents = {};
-  const add = (k, n, wn, w, imp) => {
-    const s = S.get(k) || {n: 0, wn: 0, won: 0, imp: 0};
-    s.n += n; s.wn += wn; s.won += w; s.imp += imp; S.set(k, s);
+  const add = (k, n, wn, w, imp, acs, kd) => {
+    const s = S.get(k) || {n: 0, wn: 0, won: 0, imp: 0, acs: 0, kd: 0};
+    s.n += n; s.wn += wn; s.won += w; s.imp += imp; s.acs += acs; s.kd += kd; S.set(k, s);
   };
   for (const [p, a, m, g, n, wn, w, acs, kd, adr] of rows) {
     const b = base[roleOf(a)], imp = 0.5 * acs / b.acs + 0.25 * kd / b.kd + 0.25 * adr / b.adr;
-    for (const k of ["G", `P|${p}`, `PA|${p}|${a}`, `PM|${p}|${m}`, `PAM|${p}|${a}|${m}`]) add(k, n, wn, w, imp);
+    for (const k of ["G", `P|${p}`, `PA|${p}|${a}`, `PM|${p}|${m}`, `PAM|${p}|${a}|${m}`]) add(k, n, wn, w, imp, acs, kd);
     const ag = (agents[p] ||= {})[a] ||= {n: 0, wn: 0};
     ag.n += n; ag.wn += wn;
   }
@@ -918,21 +966,27 @@ function render() {
   if (best.st) html += `<div class="struct">${structText(structKey(best.picks.map(x => x.o)))} · pros run this on ${pct(best.st.share)} of ${esc(state.map)} games</div>`;
   html += `<div class="cards">` + byRole(best.picks).map(({p, o}) => {
     const [cls, txt] = conf(o.wnMap);
-    return `<div class="card ${esc(o.role)}"><div class="role">${esc(o.role)}</div><div class="agent">${esc(o.agent)}</div>
-      <div class="who">${esc(short(DATA.players[p]))}${p === igl ? '<span class="iglb">IGL</span>' : ""}</div>
-      <div class="meta">Score ${o.score.toFixed(1)} · ${o.nMap} game${o.nMap === 1 ? "" : "s"} here · recent WR here ${pct(o.wrMap)}<br>${o.nAgent} games on ${esc(o.agent)}${o.pro != null ? `<span class="pro">Pros pick ${esc(o.agent)} in ${pct(o.pro)} of games here</span>` : ""}</div>
-      <span class="pill ${cls}">${txt}</span></div>`;
+    const A = M.S.get(`PA|${p}|${o.agent}`) || {n: 0, wn: 0, won: 0, acs: 0, kd: 0};
+    const f = (x, d) => A.wn > 0.05 ? (x / A.wn).toFixed(d) : "–";
+    return `<div class="card ${esc(o.role)}">
+      <div class="ch">${icon(o.agent)}<div style="min-width:0"><div class="role">${esc(o.role)}</div><div class="agent">${esc(o.agent)}</div>
+        <div class="who">${esc(short(DATA.players[p]))}${p === igl ? '<span class="iglb">IGL</span>' : ""}</div></div></div>
+      <div class="kvh">${esc(short(DATA.players[p]))} on ${esc(o.agent)}, all maps</div>
+      <div class="kv"><div><b>${A.n}</b><span>Games</span></div><div><b>${A.wn > 0.05 ? pct(A.won / A.wn) : "–"}</b><span>Win rate</span></div>
+        <div><b>${f(A.acs, 0)}</b><span>ACS</span></div><div><b>${f(A.kd, 2)}</b><span>K/D</span></div></div>
+      <div class="here">On ${esc(state.map)}: ${o.nMap} game${o.nMap === 1 ? "" : "s"} · WR ${pct(o.wrMap)}${o.pro != null ? ` · pros pick it ${pct(o.pro)}` : ""}</div>
+      <div class="foot"><span class="pill ${cls}">${txt}</span><span class="sc">score ${o.score.toFixed(1)}</span></div></div>`;
   }).join("") + `</div>`;
   const cp = closestPro(state.map, best.picks.map(x => x.o.agent));
   if (cp && n === 5) html += `<div class="procomp"><span class="k">Closest pro comp</span><span>${cp.comp.map(esc).join(" · ")}</span><span class="match">${cp.overlap}/5 same · pros ${cp.w}–${cp.n - cp.w}</span></div>`;
   if (comps.length > 1) {
     html += `<div><h3>Alternatives</h3><div class="alts">` + comps.slice(1).map(c =>
-      `<div class="alt">${byRole(c.picks).map(({p, o}) => `<span><b>${esc(o.agent)}</b> ${esc(short(DATA.players[p]))}</span>`).join("")}<span class="sc">${c.total.toFixed(1)}</span></div>`
+      `<div class="alt">${byRole(c.picks).map(({p, o}) => `<span>${icon(o.agent, "ai sm")}<b>${esc(o.agent)}</b> ${esc(short(DATA.players[p]))}</span>`).join("")}<span class="sc">${c.total.toFixed(1)}</span></div>`
     ).join("") + `</div></div>`;
   }
   html += `<div><h3>Everyone's best agents on ${esc(state.map)}</h3><div class="scroll"><table><thead><tr><th>Player</th><th>1st</th><th>2nd</th><th>3rd</th><th>4th</th></tr></thead><tbody>` +
     players.map((p, i) => `<tr><td class="pn">${esc(short(DATA.players[p]))}</td>` +
-      [0, 1, 2, 3].map(k => { const o = opts[i][k]; return o ? `<td>${esc(o.agent)} <span class="s">${o.score.toFixed(0)} · ${o.nMap}g${o.pro != null ? ` · pro ${pct(o.pro)}` : ""}</span></td>` : "<td></td>"; }).join("") + `</tr>`
+      [0, 1, 2, 3].map(k => { const o = opts[i][k]; return o ? `<td>${icon(o.agent, "ai sm")}${esc(o.agent)} <span class="s">${o.score.toFixed(0)} · ${o.nMap}g${o.pro != null ? ` · pro ${pct(o.pro)}` : ""}</span></td>` : "<td></td>"; }).join("") + `</tr>`
     ).join("") + `</tbody></table></div></div>`;
   out.innerHTML = html;
 }
