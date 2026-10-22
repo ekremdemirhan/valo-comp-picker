@@ -677,6 +677,7 @@ UI_TEMPLATE = r"""<title>Squad Comp Picker</title>
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 var(--body)}
 .wrap{max-width:1120px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .top{display:flex;gap:16px;align-items:center;margin-bottom:22px}
+@media (max-width:520px){.top{align-items:flex-start}}
 .topt{min-width:0}.top .lead{margin-bottom:0}
 .logo{width:76px;height:auto;flex:none;border-radius:12px}
 @media (max-width:520px){.logo{width:56px}}

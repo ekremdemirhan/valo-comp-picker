@@ -1,5 +1,11 @@
 # Valorant comp picker
 
+## 👉 [Open the Comp Picker](https://ekremdemirhan.github.io/valo-comp-picker/)
+
+`https://ekremdemirhan.github.io/valo-comp-picker/`
+
+On a phone, if this link opens the GitHub app instead of the page, copy the address above into your browser (Chrome or Safari).
+
 Picks the best agent composition for the five of us on a given map, from everyone's recent competitive
 games on tracker.gg plus what pros run on that map (VCT 2026 data from VLR.gg).
 
