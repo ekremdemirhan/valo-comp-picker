@@ -462,6 +462,8 @@ def cmd_fetch(args):
     fetch_many(roster, args)
     records = load_records(roster, args.cache, args.half_life)
     have = {r["player"] for r in records}
+    if not have:
+        sys.exit(f"No fresh data for anyone, so {args.data} was left as it is.")
     rows = build_rows(records, roster)
     # keep last week's numbers for anyone whose fetch failed and who has no cache here
     if os.path.exists(args.data):
