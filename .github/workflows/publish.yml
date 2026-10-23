@@ -38,6 +38,7 @@ jobs:
           # With this repo secret set, data comes from the HenrikDev API (works from GitHub's servers).
           # Without it, the tool tries tracker.gg, which Cloudflare usually blocks here.
           HENRIKDEV_API_KEY: ${{ secrets.HENRIKDEV_API_KEY }}
+          PYTHONUNBUFFERED: "1" # show progress in the log while it runs
         run: |
           if [ -z "$HENRIKDEV_API_KEY" ]; then pip install -r requirements.txt; fi
           python valo_planner.py fetch

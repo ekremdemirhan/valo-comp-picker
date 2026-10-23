@@ -62,7 +62,9 @@ tracker.gg blocks GitHub's servers, so the Monday refresh uses the free HenrikDe
 3. Actions → **Refresh data and publish page** → **Run workflow** to test it. The run summary says if
    anything failed.
 
-Match history builds up in `data/history/` every week. Until a player has 40 games there, their previous
+Match history builds up in `data/history/` every week (it was seeded with each player's last 160
+tracker.gg games, so picks don't start from scratch). `python valo_planner.py rebuild` recomputes the
+stats from that folder without fetching. Until a player has 40 games there, their previous
 numbers are kept. Everyone is looked up in the `eu` region; change `--region` in the workflow if that's wrong.
 
 ## If the Monday refresh can't reach tracker.gg

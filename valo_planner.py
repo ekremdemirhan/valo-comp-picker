@@ -296,9 +296,13 @@ def henrik_stored_record(m):
     if mine not in ("red", "blue"):
         return None
     my_r, their_r = teams.get(mine), teams.get("blue" if mine == "red" else "red")
-    if not isinstance(my_r, int) or not isinstance(their_r, int) or my_r + their_r == 0:
+    if not isinstance(my_r, int) or not isinstance(their_r, int):
         return None
     rounds = my_r + their_r
+    # Stored matches only have round counts. A tie before overtime means a surrender or remake,
+    # where the winner can't be known, and very short games say little: skip both.
+    if rounds < 8 or (my_r == their_r and rounds < 24):
+        return None
     agent, map_name = dig(st, "character", "name"), dig(meta, "map", "name")
     if not agent or not map_name:
         return None
@@ -322,7 +326,7 @@ def henrik_v4_record(m, riot_id):
     rounds = rw + rl
     st, md = me.get("stats") or {}, m.get("metadata") or {}
     agent, map_name = dig(me, "agent", "name"), dig(md, "map", "name")
-    if not rounds or not agent or not map_name:
+    if rounds < 8 or not agent or not map_name:  # remakes / very short games say little
         return None
     return {"id": md.get("match_id"), "ts": _iso_ts(md.get("started_at")), "agent": agent, "map": map_name,
             "won": 1.0 if team.get("won") else 0.5 if rw == rl else 0.0,
@@ -644,9 +648,20 @@ def records_from_data(data):
 
 
 def cmd_fetch(args):
-    sq = load_squad(args.squad)
-    roster = sq["players"]
+    roster = load_squad(args.squad)["players"]
     fresh = fetch_many(roster, args)
+    write_data(args, roster)
+    if len(fresh) < len(roster):
+        sys.exit(2)  # partial refresh: data written, but tell the pipeline
+
+
+def cmd_rebuild(args):
+    """Recompute data/squad_data.json from data/history (and any cache) without fetching,
+    e.g. after editing the history files or to re-apply the recency weights."""
+    write_data(args, load_squad(args.squad)["players"])
+
+
+def write_data(args, roster):
     records = load_records(roster, args.cache, args.half_life, args.history)
     old_players = load_data(args.data)["players"] if os.path.exists(args.data) else []
     counts = {p: sum(1 for r in records if r["player"] == p) for p in roster}
@@ -674,8 +689,6 @@ def cmd_fetch(args):
     with open(args.data, "w", encoding="utf-8") as f:
         json.dump({"asOf": time.strftime("%d %b %Y"), "players": roster, "rows": rows}, f, separators=(",", ":"))
     print(f"Wrote {args.data} ({len(rows)} rows)")
-    if len(fresh) < len(roster):
-        sys.exit(2)  # partial refresh: data written, but tell the pipeline
 
 
 def comp_report(args):
@@ -1257,6 +1270,14 @@ def main():
     p.add_argument("--delay", type=float, default=2.0, help="seconds between requests (default 2)")
     p.add_argument("--half-life", type=float, default=90, help="days until a game counts half (default 90, 0 = no weighting)")
     p.set_defaults(func=cmd_fetch)
+
+    p = sub.add_parser("rebuild", help="recompute the stats file from data/history without fetching")
+    common(p)
+    p.add_argument("--cache", default=os.path.join(here, "cache"), help="raw download cache (default ./cache)")
+    p.add_argument("--history", default=os.path.join(here, "data", "history"), help="match history folder")
+    p.add_argument("--min-history", type=int, default=40, help="keep previous numbers below this many games")
+    p.add_argument("--half-life", type=float, default=90, help="days until a game counts half (default 90)")
+    p.set_defaults(func=cmd_rebuild)
 
     p = sub.add_parser("comp", help="best composition for the chosen players on a map")
     common(p)
