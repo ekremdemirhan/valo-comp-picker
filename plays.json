@@ -1,0 +1,330 @@
+{
+  "_note": "Simple set plays per map. Each step names a job (slot) and the kind of utility it wants; the page fills in who does it and the ability name for their agent. Slots: controller, initiator, duelist, sentinel, fifth (whoever is left over: the 2nd duelist, 2nd initiator, ...). Edit freely: change callouts to the ones your squad uses.",
+  "abilities": {
+    "Brimstone": {"smoke": "Sky Smoke", "molly": "Incendiary", "buff": "Stim Beacon"},
+    "Omen": {"smoke": "Dark Cover", "flash": "Paranoia", "entry": "Shrouded Step"},
+    "Astra": {"smoke": "Nebula", "stun": "Nova Pulse", "slow": "Gravity Well"},
+    "Viper": {"smoke": "Poison Cloud", "wall": "Toxic Screen", "molly": "Snake Bite"},
+    "Harbor": {"smoke": "Cove", "wall": "High Tide"},
+    "Clove": {"smoke": "Ruse", "molly": "Meddle"},
+    "Miks": {"smoke": "Waveform", "stun": "M-pulse (Concuss)", "buff": "Harmonize"},
+    "Sova": {"recon": "Recon Bolt", "clear": "Owl Drone", "molly": "Shock Bolt"},
+    "Fade": {"recon": "Haunt", "clear": "Prowler", "stun": "Seize"},
+    "Skye": {"flash": "Guiding Light", "recon": "Guiding Light", "clear": "Trailblazer"},
+    "Breach": {"flash": "Flashpoint", "stun": "Fault Line", "molly": "Aftershock"},
+    "KAY/O": {"flash": "FLASH/drive", "recon": "ZERO/point", "molly": "FRAG/ment"},
+    "Gekko": {"flash": "Dizzy", "clear": "Wingman", "molly": "Mosh Pit"},
+    "Tejo": {"clear": "Stealth Drone", "stun": "Special Delivery", "molly": "Guided Salvo"},
+    "Jett": {"entry": "Tailwind", "smoke": "Cloudburst"},
+    "Neon": {"entry": "High Gear", "wall": "Fast Lane", "stun": "Relay Bolt"},
+    "Phoenix": {"entry": "Blaze", "wall": "Blaze", "flash": "Curveball", "molly": "Hot Hands"},
+    "Raze": {"entry": "Blast Pack", "clear": "Boom Bot", "molly": "Paint Shells"},
+    "Reyna": {"entry": "Dismiss", "flash": "Leer"},
+    "Yoru": {"entry": "Gatecrash", "flash": "Blindside"},
+    "Iso": {"entry": "Double Tap", "wall": "Contingency"},
+    "Waylay": {"entry": "Lightspeed", "slow": "Saturate"},
+    "Killjoy": {"trip": "Alarmbot", "molly": "Nanoswarm", "hold": "Turret"},
+    "Cypher": {"trip": "Trapwire", "smoke": "Cyber Cage", "recon": "Spycam"},
+    "Chamber": {"trip": "Trademark", "entry": "Rendezvous"},
+    "Sage": {"slow": "Slow Orb", "wall": "Barrier Orb", "hold": "Slow Orb"},
+    "Deadlock": {"trip": "Sonic Sensor", "wall": "Barrier Mesh", "slow": "GravNet"},
+    "Vyse": {"trip": "Razorvine", "flash": "Arc Rose", "wall": "Shear"},
+    "Veto": {"trip": "Chokehold", "entry": "Crosscut", "hold": "Interceptor"}
+  },
+  "maps": {
+    "Haven": [
+      {"name": "A split: Long + Short", "side": "Attack", "call": "A SPLIT",
+       "idea": "Hit A from Long and Short (Sewer) at once so the A players get caught from two sides.",
+       "steps": [
+         {"slot": "controller", "use": ["smoke"], "do": "smoke A Heaven and A Link (CT) when Long goes"},
+         {"slot": "initiator", "use": ["recon", "clear", "flash"], "do": "util onto A site from Long; call what you see"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "first in through Long, clear Hell and default"},
+         {"slot": "fifth", "use": ["flash", "entry", "clear", "stun"], "do": "come through Short (Sewer) at the same time as Long, check Hell from the stairs"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "watch Garage / mid for the flank, then rotate to A for the post-plant"}
+       ],
+       "after": "Plant default. Play post-plant from Long and Short, one player watching A Link."},
+      {"name": "C Long execute", "side": "Attack", "call": "C GO",
+       "idea": "Five-man C hit through C Long with Garage taken by one player.",
+       "steps": [
+         {"slot": "controller", "use": ["smoke"], "do": "smoke C Link (CT) and the Garage door"},
+         {"slot": "initiator", "use": ["recon", "flash", "clear"], "do": "clear Logs and C site corners from C Long"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "first in to C site, take Logs"},
+         {"slot": "fifth", "use": ["flash", "stun", "entry", "clear"], "do": "trade the duelist, clear Cubby / back site"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "hold Garage from mid side so nobody walks through it behind you"}
+       ],
+       "after": "Plant safe (behind the box). Hold from Logs, Long and Garage; save a molly for the defuse."},
+      {"name": "Garage take into C", "side": "Attack", "call": "GARAGE",
+       "idea": "Slow round: take mid Courtyard and Garage first, then pinch C through Garage + C Long late.",
+       "steps": [
+         {"slot": "initiator", "use": ["flash", "stun", "recon"], "do": "util on the Garage window, then take mid Courtyard"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "peek and take Garage right after the initiator's util"},
+         {"slot": "controller", "use": ["smoke"], "do": "keep smokes for C Link (CT) and the window on the hit"},
+         {"slot": "fifth", "use": ["flash", "entry", "stun", "clear"], "do": "show A Long early with one shot of util, then rotate to C Long"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "lurk C Long, wait for the Garage call, then go together"}
+       ],
+       "after": "Hit C around 0:45 left; if A players rotate through Link, punish it from Garage."},
+      {"name": "2-1-2 and retake", "side": "Defense", "call": "DEFAULT",
+       "idea": "Two A, one B, two C. Give up a site if it gets five-stacked and retake together.",
+       "steps": [
+         {"slot": "sentinel", "use": ["trip", "slow", "hold"], "do": "anchor C: trap C Long, play off it"},
+         {"slot": "controller", "use": ["smoke"], "do": "play B / mid so smokes can reach A or C fast"},
+         {"slot": "initiator", "use": ["recon", "flash", "stun"], "do": "A Long: info early, then fall back to Heaven"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "A Short (Sewer) or Garage: take one early fight, then fall back"},
+         {"slot": "fifth", "use": ["flash", "stun", "molly", "slow"], "do": "C Garage / Link: support the anchor"}
+       ],
+       "after": "Retake: smoke the attackers' entry (Long or Garage), flash in through Link and the other door together."}
+    ],
+    "Bind": [
+      {"name": "A Showers + Short", "side": "Attack", "call": "A GO",
+       "idea": "Push Showers and A Short (Lamps) at the same time.",
+       "steps": [
+         {"slot": "controller", "use": ["smoke"], "do": "smoke Heaven and U-Hall / CT"},
+         {"slot": "initiator", "use": ["recon", "flash", "clear"], "do": "util out of Showers, check Truck"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "first out of Showers, take Truck / default"},
+         {"slot": "fifth", "use": ["flash", "entry", "stun", "clear"], "do": "come from A Short (Lamps) on the same call"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "trap A Lobby / teleporter for flanks, then join"}
+       ],
+       "after": "Plant default or behind the Truck; play off Lamps, Showers and the site."},
+      {"name": "B Hookah + Long", "side": "Attack", "call": "B GO",
+       "idea": "Take Hookah, then hit B from Hookah and B Long together.",
+       "steps": [
+         {"slot": "controller", "use": ["smoke"], "do": "smoke B Elbow and CT (Hall)"},
+         {"slot": "initiator", "use": ["recon", "clear", "flash"], "do": "clear Hookah, then site from Long"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "first out of Hookah window/door"},
+         {"slot": "fifth", "use": ["flash", "stun", "entry", "clear"], "do": "come down B Long with the duelist"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "watch B Long / Garden flank, then post-plant Long"}
+       ],
+       "after": "Plant default; hold from Hookah, Long and Garden."},
+      {"name": "Fake A, teleport B", "side": "Attack", "call": "TP FAKE",
+       "idea": "Make noise and use util at A, then teleport and walk to B.",
+       "steps": [
+         {"slot": "initiator", "use": ["flash", "recon", "stun"], "do": "throw util into A Showers/Short to sell the fake"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "go through the teleporter first at B side"},
+         {"slot": "controller", "use": ["smoke"], "do": "save smokes for B: Elbow and CT"},
+         {"slot": "fifth", "use": ["flash", "stun", "entry", "clear"], "do": "stay at A for 5 seconds making noise, then follow"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "lurk B Long the whole time, call rotations"}
+       ],
+       "after": "Only works if the fake costs them util. If A was wide open, just take A instead."},
+      {"name": "Long hold + retake", "side": "Defense", "call": "DEFAULT",
+       "idea": "Sentinel anchors B, one player on Hookah, controller center (U-Hall), two on A.",
+       "steps": [
+         {"slot": "sentinel", "use": ["trip", "slow", "hold"], "do": "anchor B: trap B Long, hold site"},
+         {"slot": "fifth", "use": ["flash", "molly", "stun", "slow"], "do": "Hookah: info, fall back early"},
+         {"slot": "controller", "use": ["smoke"], "do": "U-Hall/CT so you can smoke either site"},
+         {"slot": "initiator", "use": ["recon", "flash", "stun"], "do": "A: info on Showers"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "A Short (Lamps)"}
+       ],
+       "after": "Retake through CT/U-Hall plus the other entry; flash in together."}
+    ],
+    "Lotus": [
+      {"name": "A Main execute", "side": "Attack", "call": "A GO",
+       "idea": "Classic A hit through A Main with the Tree and Top smoked off.",
+       "steps": [
+         {"slot": "controller", "use": ["smoke"], "do": "smoke Tree and A Top (Stairs)"},
+         {"slot": "initiator", "use": ["recon", "clear", "flash"], "do": "clear A site / Hut from A Main"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "first in, take site / Hut"},
+         {"slot": "fifth", "use": ["flash", "entry", "stun", "clear"], "do": "trade the duelist, check Rubble"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "watch A Link / the rotating door for flanks"}
+       ],
+       "after": "Plant default; hold Tree, Rubble and Main."},
+      {"name": "C hit", "side": "Attack", "call": "C GO",
+       "idea": "Five through C Main with Hall and Waterfall smoked.",
+       "steps": [
+         {"slot": "controller", "use": ["smoke"], "do": "smoke C Hall and Waterfall"},
+         {"slot": "initiator", "use": ["recon", "flash", "clear"], "do": "clear Mound and site from C Main"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "first in, take Mound"},
+         {"slot": "fifth", "use": ["flash", "stun", "entry", "clear"], "do": "trade the duelist, clear Bend"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "trap C Main behind you / watch B side"}
+       ],
+       "after": "Plant default; hold from Mound, Main and Bend."},
+      {"name": "Fast B", "side": "Attack", "call": "B RUSH",
+       "idea": "Anti-eco or surprise: five straight into B.",
+       "steps": [
+         {"slot": "controller", "use": ["smoke"], "do": "smoke the back of B (Upper / CT side)"},
+         {"slot": "initiator", "use": ["flash", "stun", "recon"], "do": "util onto B site right as you go"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "first through B Main (Pillars)"},
+         {"slot": "fifth", "use": ["flash", "entry", "stun", "clear"], "do": "trade the duelist"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "plant, then hold from Pillars"}
+       ],
+       "after": "Go fast. If B is stacked, rotate to A or C through the rotating doors."},
+      {"name": "Doors retake", "side": "Defense", "call": "DEFAULT",
+       "idea": "1 on A, 1 on B, sentinel on C, rest flexible. Use the rotating doors to retake.",
+       "steps": [
+         {"slot": "sentinel", "use": ["trip", "slow", "hold"], "do": "anchor C"},
+         {"slot": "initiator", "use": ["recon", "flash", "stun"], "do": "A: info on A Main early"},
+         {"slot": "controller", "use": ["smoke"], "do": "B so smokes reach any site"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "A Top / Tree, help A"},
+         {"slot": "fifth", "use": ["flash", "stun", "molly", "slow"], "do": "C Link / Waterfall, help C"}
+       ],
+       "after": "Retake through the rotating door and the other entry at the same time."}
+    ],
+    "Sunset": [
+      {"name": "A execute", "side": "Attack", "call": "A GO",
+       "idea": "Hit A from A Main with Elbow and CT cut off.",
+       "steps": [
+         {"slot": "controller", "use": ["smoke"], "do": "smoke A Elbow and CT (A Link)"},
+         {"slot": "initiator", "use": ["recon", "clear", "flash"], "do": "clear A site from Main"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "first in from A Main"},
+         {"slot": "fifth", "use": ["flash", "entry", "stun", "clear"], "do": "come through Alley from mid on the same call"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "watch mid / B Market flank"}
+       ],
+       "after": "Plant default; hold from Main and Alley."},
+      {"name": "B execute", "side": "Attack", "call": "B GO",
+       "idea": "Through B Main with Market and CT cut off.",
+       "steps": [
+         {"slot": "controller", "use": ["smoke"], "do": "smoke Market and CT (Boba side)"},
+         {"slot": "initiator", "use": ["recon", "flash", "clear"], "do": "clear the site from B Main"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "first in, clear Boba"},
+         {"slot": "fifth", "use": ["flash", "stun", "entry", "clear"], "do": "trade the duelist"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "watch mid for the flank"}
+       ],
+       "after": "Plant default; hold from Main and the site."},
+      {"name": "Mid take, hit late", "side": "Attack", "call": "MID",
+       "idea": "Take mid first, then hit the weaker site.",
+       "steps": [
+         {"slot": "initiator", "use": ["recon", "flash", "stun"], "do": "clear mid Top and Courtyard"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "take mid Top after the info"},
+         {"slot": "controller", "use": ["smoke"], "do": "keep smokes for the site the IGL picks"},
+         {"slot": "fifth", "use": ["flash", "stun", "entry", "clear"], "do": "show A Main"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "show B Main"}
+       ],
+       "after": "From mid, go through Market (B) or Alley (A)."},
+      {"name": "Mid-control default", "side": "Defense", "call": "DEFAULT",
+       "idea": "Fight for mid early, then fall back to sites.",
+       "steps": [
+         {"slot": "sentinel", "use": ["trip", "slow", "hold"], "do": "anchor B"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "mid: take one fight, fall back"},
+         {"slot": "initiator", "use": ["recon", "flash", "stun"], "do": "mid: info, then fall back"},
+         {"slot": "controller", "use": ["smoke"], "do": "A or CT so smokes reach both sites"},
+         {"slot": "fifth", "use": ["flash", "stun", "molly", "slow"], "do": "A: hold A Main"}
+       ],
+       "after": "Retake from CT plus the mid entry (Alley or Market)."}
+    ],
+    "Abyss": [
+      {"name": "A execute", "side": "Attack", "call": "A GO",
+       "idea": "A Main hit with Heaven and Link smoked.",
+       "steps": [
+         {"slot": "controller", "use": ["smoke"], "do": "smoke A Heaven/Tower and A Link"},
+         {"slot": "initiator", "use": ["recon", "clear", "flash"], "do": "clear Secret and site from A Main"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "first in"},
+         {"slot": "fifth", "use": ["flash", "entry", "stun", "clear"], "do": "trade the duelist, clear Secret"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "watch mid / Link flank"}
+       ],
+       "after": "Plant default; watch out for the map edge."},
+      {"name": "B execute", "side": "Attack", "call": "B GO",
+       "idea": "B Main hit with Tower and Link smoked.",
+       "steps": [
+         {"slot": "controller", "use": ["smoke"], "do": "smoke B Tower and B Link"},
+         {"slot": "initiator", "use": ["recon", "flash", "clear"], "do": "clear the site from B Main"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "first in"},
+         {"slot": "fifth", "use": ["flash", "stun", "entry", "clear"], "do": "trade the duelist"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "watch mid for the flank"}
+       ],
+       "after": "Plant default; hold from Main and site."},
+      {"name": "Mid into split", "side": "Attack", "call": "MID SPLIT",
+       "idea": "Take mid, then split a site from Main and mid.",
+       "steps": [
+         {"slot": "initiator", "use": ["recon", "flash", "stun"], "do": "clear mid Top / Bend"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "take mid Top"},
+         {"slot": "controller", "use": ["smoke"], "do": "keep smokes for the chosen site"},
+         {"slot": "fifth", "use": ["flash", "stun", "entry", "clear"], "do": "lurk the chosen site's Main"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "trap mid behind you"}
+       ],
+       "after": "Hit from mid and Main together."},
+      {"name": "Default + retake", "side": "Defense", "call": "DEFAULT",
+       "idea": "2 A, 1 mid, 2 B. Retake together.",
+       "steps": [
+         {"slot": "sentinel", "use": ["trip", "slow", "hold"], "do": "anchor one site"},
+         {"slot": "controller", "use": ["smoke"], "do": "mid so smokes reach both sites"},
+         {"slot": "initiator", "use": ["recon", "flash", "stun"], "do": "info on A Main"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "mid fight, then fall back"},
+         {"slot": "fifth", "use": ["flash", "stun", "molly", "slow"], "do": "support the anchor"}
+       ],
+       "after": "Retake from Link plus Heaven/Tower."}
+    ],
+    "Corrode": [
+      {"name": "A split: Link + Main", "side": "Attack", "call": "A SPLIT",
+       "idea": "Smoke Mid Stairs, then hit A through A Link and A Main together.",
+       "steps": [
+         {"slot": "controller", "use": ["smoke"], "do": "smoke Mid Stairs, then CT on A"},
+         {"slot": "initiator", "use": ["recon", "clear", "flash"], "do": "clear Pocket and Elbow"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "first through A Main into Yard"},
+         {"slot": "fifth", "use": ["flash", "stun", "entry", "clear"], "do": "come through A Link on the same call"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "watch mid / B Link flank"}
+       ],
+       "after": "Plant; hold from Elbow corners, Link, Yard and Main."},
+      {"name": "B execute", "side": "Attack", "call": "B GO",
+       "idea": "Tight B Main hit with Tower and Elbow smoked.",
+       "steps": [
+         {"slot": "controller", "use": ["smoke"], "do": "smoke B Tower and B Elbow"},
+         {"slot": "initiator", "use": ["recon", "clear", "flash"], "do": "clear under the ramp and the left corner of B Main"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "first through B Main"},
+         {"slot": "fifth", "use": ["flash", "stun", "entry", "clear"], "do": "trade the duelist"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "watch B Link / mid flank"}
+       ],
+       "after": "Plant; play from Elbow, Tower, the shed or boxes."},
+      {"name": "Mid into B Link", "side": "Attack", "call": "MID B",
+       "idea": "Take mid, smoke Window and push B Link.",
+       "steps": [
+         {"slot": "controller", "use": ["smoke"], "do": "smoke A Link and Top Mid, then Window"},
+         {"slot": "initiator", "use": ["flash", "recon", "stun"], "do": "util onto Stairs, take it with the duelist"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "push B Link"},
+         {"slot": "fifth", "use": ["flash", "stun", "entry", "clear"], "do": "trade the duelist through B Link"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "show B Main to split them"}
+       ],
+       "after": "If defenders give up mid early, flank from A Main or B Main."},
+      {"name": "Stairs hold + retake", "side": "Defense", "call": "DEFAULT",
+       "idea": "Fight for mid Stairs from Top Mid and A Link; B is easy to hold.",
+       "steps": [
+         {"slot": "sentinel", "use": ["trip", "slow", "hold"], "do": "anchor B (tight choke)"},
+         {"slot": "controller", "use": ["smoke"], "do": "smoke off Stairs from Top Mid"},
+         {"slot": "initiator", "use": ["recon", "flash", "stun"], "do": "info on A through the wall hole"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "mid fight with the controller, then fall back"},
+         {"slot": "fifth", "use": ["flash", "stun", "molly", "slow"], "do": "A: crossfire from Pocket and Elbow"}
+       ],
+       "after": "Retake A from Defender Spawn, Link and Main."}
+    ],
+    "Summit": [
+      {"name": "Fountain into A Link", "side": "Attack", "call": "MID A",
+       "idea": "Take Mid Fountain, then split A through A Link and A Main.",
+       "steps": [
+         {"slot": "initiator", "use": ["recon", "flash", "stun"], "do": "take Mid Fountain"},
+         {"slot": "controller", "use": ["smoke"], "do": "smoke CT on A"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "first through A Link from Mid Bend"},
+         {"slot": "fifth", "use": ["flash", "stun", "entry", "clear"], "do": "come down A Main, clear Garden"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "watch mid; drop the Mid Wall after the hit to stop rotations"}
+       ],
+       "after": "Plant; drop the A Wall to cut retake routes."},
+      {"name": "B Main execute", "side": "Attack", "call": "B GO",
+       "idea": "Through B Main; drop the B Wall after the plant.",
+       "steps": [
+         {"slot": "controller", "use": ["smoke"], "do": "smoke B Tower and B Link"},
+         {"slot": "initiator", "use": ["recon", "clear", "flash"], "do": "clear Close Box and Triples"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "first in from B Main"},
+         {"slot": "fifth", "use": ["flash", "stun", "entry", "clear"], "do": "trade the duelist"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "watch the flank, then drop the B Wall after plant"}
+       ],
+       "after": "Big site, lots of post-plant spots; one player near site, one on flank."},
+      {"name": "Mid lurk split", "side": "Attack", "call": "MID SPLIT",
+       "idea": "Push two players through Mid Bottom / Window while three show a site.",
+       "steps": [
+         {"slot": "initiator", "use": ["recon", "flash", "stun"], "do": "info on mid from Mid Bottom"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "push Mid Bottom into B Link"},
+         {"slot": "controller", "use": ["smoke"], "do": "smoke B Tower when it's time"},
+         {"slot": "fifth", "use": ["flash", "stun", "entry", "clear"], "do": "B Main"},
+         {"slot": "sentinel", "use": ["trip", "slow"], "do": "B Main"}
+       ],
+       "after": "Hit B from B Main and B Link together."},
+      {"name": "Mid hold", "side": "Defense", "call": "DEFAULT",
+       "idea": "Always one player watching mid; use the Mid Wall to deny a split.",
+       "steps": [
+         {"slot": "sentinel", "use": ["trip", "slow", "hold"], "do": "anchor B, save util for retake"},
+         {"slot": "controller", "use": ["smoke"], "do": "mid: hold Fountain"},
+         {"slot": "initiator", "use": ["recon", "flash", "stun"], "do": "A: info on A Main"},
+         {"slot": "duelist", "use": ["entry", "flash"], "do": "mid with the controller"},
+         {"slot": "fifth", "use": ["flash", "stun", "molly", "slow"], "do": "B Link / Tower"}
+       ],
+       "after": "Drop the Mid Wall to stop a late split. Retake together, never one by one."}
+    ]
+  }
+}

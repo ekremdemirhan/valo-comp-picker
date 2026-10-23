@@ -45,6 +45,16 @@ that agent and that map, so a short lucky run doesn't dominate. An agent needs 6
 second-best comp are usually ~0.4 apart; the best beats a typical valid comp for the same five by ~5.7. It ranks
 comps; it isn't a win probability.
 
+## Plays for the comp
+
+Under the cards there's a **Plays for this comp** list: 3 attack plays and 1 defense setup per map in the current pool
+(Abyss, Bind, Corrode, Haven, Lotus, Summit, Sunset). Each play has a short **call word** (e.g. `A SPLIT`, `C GO`) and
+gives every player a job with their actual agent's ability, so the IGL can shout the call mid-match. The pipeline
+output lists them too.
+
+The plays live in `plays.json`. Edit the callouts or add your own plays there; each step just names a job
+(`controller`, `initiator`, `duelist`, `sentinel`, or `fifth` for whoever is left over) and the kind of utility it wants.
+
 ## Setup (once)
 
 1. Make this a **public** repo (Pages and Actions are free for public repos on a free account).

@@ -519,6 +519,71 @@ def load_meta(path):
     return {"maps": {}, "pool": []}
 
 
+def load_plays(path=None):
+    path = path or os.path.join(os.path.dirname(os.path.abspath(__file__)), "plays.json")
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    return {"abilities": {}, "maps": {}}
+
+
+SLOT_ROLE = {"controller": "Controller", "initiator": "Initiator", "duelist": "Duelist", "sentinel": "Sentinel"}
+
+
+def assign_slots(picks):
+    """picks: [(player, agent, role)] -> {slot: (player, agent)}. One player per role; whoever is left over covers a
+    role nobody plays, then the last one is 'fifth'."""
+    slots, left = {}, list(picks)
+    for slot, role in SLOT_ROLE.items():
+        hit = next((x for x in left if x[2] == role), None)
+        if hit:
+            slots[slot] = hit[:2]
+            left.remove(hit)
+    for slot in SLOT_ROLE:
+        if slot not in slots and left:
+            slots[slot] = left.pop(0)[:2]
+    if left:
+        slots["fifth"] = left.pop(0)[:2]
+    return slots
+
+
+def plays_for(plays, map_name, picks):
+    """The map's plays with each step given to a player: [{name, side, call, idea, after, steps: [{player, agent,
+    ability, do, missing}]}]."""
+    slots, ab = assign_slots(picks), plays.get("abilities", {})
+    out = []
+    for pl in plays.get("maps", {}).get(map_name, []):
+        steps = []
+        for st in pl["steps"]:
+            if st["slot"] not in slots:
+                continue
+            p, agent = slots[st["slot"]]
+            have = ab.get(agent, {})
+            ability = next((have[k] for k in st.get("use", []) if k in have), None)
+            steps.append({"player": p, "agent": agent, "ability": ability, "do": st["do"],
+                          "missing": None if ability or not st.get("use") else st["use"][0]})
+        out.append({**{k: pl.get(k, "") for k in ("name", "side", "call", "idea", "after")}, "steps": steps})
+    return out
+
+
+def play_lines(plays, md):
+    out = []
+    if not plays:
+        return out
+    out += ["", "### Plays for this comp", ""] if md else ["\nPlays for this comp:"]
+    for pl in plays:
+        head = f"{pl['side'].upper()} · \"{pl['call']}\" · {pl['name']}"
+        out += ([f"**{head}**: {pl['idea']}", ""] if md else [f"\n  {head}", f"    {pl['idea']}"])
+        for i, s in enumerate(pl["steps"], 1):
+            how = f" [{s['ability']}]" if s["ability"] else ""
+            miss = f" (no {s['missing']} on {s['agent']}; skip it or improvise)" if s["missing"] else ""
+            line = f"{short(s['player'])} ({s['agent']}): {s['do']}{how}{miss}"
+            out.append(f"{i}. {line}" if md else f"    {i}. {line}")
+        if pl["after"]:
+            out += (["", f"_After: {pl['after']}_", ""] if md else [f"    After: {pl['after']}"])
+    return out
+
+
 LETTER = {"Duelist": "D", "Initiator": "I", "Controller": "C", "Sentinel": "S"}
 MIN_STRUCT_SHARE = 0.03
 
@@ -811,6 +876,9 @@ def comp_report(args):
             line = f"Closest pro comp: {', '.join(cp['comp'])} ({cp['overlap']}/5 same, pros {cp['w']}-{cp['n'] - cp['w']})"
             out += ["", line] if md else ["  " + line]
 
+    if not getattr(args, "no_plays", False):
+        out += play_lines(plays_for(load_plays(), map_name,
+                                    [(p, o["agent"], o["role"]) for p, o in comps[0]["picks"]]), md)
     opts = {p: model.options(p, map_name) for p in players}
     if md:
         out += ["", "### Each player's best agents on this map", "", "| Player | 1st | 2nd | 3rd | 4th |", "|---|---|---|---|---|"]
@@ -865,7 +933,8 @@ def build_rows(records, players):
 
 
 def render_ui(players, rows, as_of, meta, callers=()):
-    data = {"players": players, "rows": rows, "asOf": as_of, "roles": ROLES, "meta": meta, "icons": AGENT_ICONS, "callers": list(callers)}
+    data = {"players": players, "rows": rows, "asOf": as_of, "roles": ROLES, "meta": meta, "icons": AGENT_ICONS,
+            "callers": list(callers), "plays": load_plays()}
     page = UI_TEMPLATE.replace("__DATA__", json.dumps(data, separators=(",", ":")))
     logo = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "logo.png")
     if os.path.exists(logo):  # embedded, so the page stays a single file
@@ -933,6 +1002,23 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .tagline{color:var(--mut);font-weight:400}
 .procomp{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
 .procomp .k{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+.plays{display:grid;gap:8px}
+.plays .phint{margin:0;font-size:13px;color:var(--mut)}
+.play{background:var(--card);border:1px solid var(--line);border-radius:8px}
+.play summary{cursor:pointer;padding:10px 12px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;list-style:none}
+.play summary::-webkit-details-marker{display:none}
+.play summary::before{content:"▸";color:var(--mut);transition:transform .15s}
+.play[open] summary::before{transform:rotate(90deg)}
+.play .side{font:500 11px var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:4px;background:var(--soft);color:var(--mut)}
+.play .side.Attack{color:var(--duel)}.play .side.Defense{color:var(--init)}
+.play .call{font:700 20px/1 var(--display);letter-spacing:.03em}
+.play .pname{font-weight:600}
+.play .idea{width:100%;font-size:13px;color:var(--mut)}
+.play ol{margin:0;padding:0 12px 4px 34px;display:grid;gap:6px;font-size:14px}
+.play li b{font-weight:600}
+.play .ab{font:500 11px var(--mono);padding:1px 6px;border-radius:4px;background:var(--soft);border:1px solid var(--line);white-space:nowrap}
+.play .miss{color:var(--mut);font-size:12px}
+.play .after{margin:6px 12px 12px;padding:8px 10px;border-left:3px solid var(--accent);background:var(--soft);font-size:13px;border-radius:0 6px 6px 0}
 .procomp .match{font:500 12px var(--mono);color:var(--mut);margin-left:auto}
 .struct{font:500 12px var(--mono);color:var(--mut)}
 .pro{display:block;font:500 11px var(--mono);color:var(--mut);margin-top:2px}
@@ -1183,6 +1269,38 @@ function structInfo(m, key) {
   const share = (mm.st[key] || [0])[0] / mm.n;
   return {share, allowed: share >= MIN_STRUCT_SHARE, bonus: share > 0 ? Math.max(-8, 4 * Math.log(share / (top / mm.n))) : -10};
 }
+const PLAYS = DATA.plays || {abilities: {}, maps: {}};
+const SLOT_ROLE = {controller: "Controller", initiator: "Initiator", duelist: "Duelist", sentinel: "Sentinel"};
+// one player per role job; leftovers cover a role nobody plays, the last one is the "fifth"
+function assignSlots(picks) {
+  const slots = {}, left = [...picks];
+  for (const [slot, role] of Object.entries(SLOT_ROLE)) {
+    const i = left.findIndex(x => x.o.role === role);
+    if (i >= 0) slots[slot] = left.splice(i, 1)[0];
+  }
+  for (const slot of Object.keys(SLOT_ROLE)) if (!slots[slot] && left.length) slots[slot] = left.shift();
+  if (left.length) slots.fifth = left.shift();
+  return slots;
+}
+function playsFor(m, picks) {
+  const slots = assignSlots(picks), ab = PLAYS.abilities || {};
+  return ((PLAYS.maps || {})[m] || []).map(pl => ({...pl, steps: pl.steps.filter(st => slots[st.slot]).map(st => {
+    const {p, o} = slots[st.slot], have = ab[o.agent] || {};
+    const k = (st.use || []).find(k => have[k]);
+    return {p, agent: o.agent, ability: k ? have[k] : null, do: st.do, missing: !k && (st.use || []).length ? st.use[0] : null};
+  })}));
+}
+function playsHtml(m, picks) {
+  const list = playsFor(m, picks);
+  if (!list.length) return "";
+  return `<div><h3>Plays for this comp</h3><div class="plays"><p class="phint">Tap one to open it. Shout the call word, everyone knows their job.</p>` +
+    list.map(pl => `<details class="play"><summary><span class="side ${esc(pl.side)}">${esc(pl.side)}</span><span class="call">${esc(pl.call)}</span>
+      <span class="pname">${esc(pl.name)}</span><span class="idea">${esc(pl.idea)}</span></summary>
+      <ol>${pl.steps.map(s => `<li><b>${esc(short(DATA.players[s.p]))}</b> (${esc(s.agent)}): ${esc(s.do)}
+        ${s.ability ? `<span class="ab">${esc(s.ability)}</span>` : ""}${s.missing ? `<span class="miss"> no ${esc(s.missing)} on ${esc(s.agent)}: skip it or improvise</span>` : ""}</li>`).join("")}</ol>
+      ${pl.after ? `<div class="after"><b>After:</b> ${esc(pl.after)}</div>` : ""}</details>`).join("") + `</div></div>`;
+}
+
 function closestPro(m, agents) {
   const mm = META.maps[m]; if (!mm) return null;
   let best = null;
@@ -1385,6 +1503,7 @@ function render() {
   }).join("") + `</div>`;
   const cp = closestPro(state.map, best.picks.map(x => x.o.agent));
   if (cp && n === 5) html += `<div class="procomp"><span class="k">Closest pro comp</span><span>${cp.comp.map(esc).join(" · ")}</span><span class="match">${cp.overlap}/5 same · pros ${cp.w}–${cp.n - cp.w}</span></div>`;
+  html += playsHtml(state.map, best.picks);
   const rows = comps.slice(1).map(c => ({c, label: ""}));
   if (recommended && Math.abs(recommended.total - best.total) > 0.05) rows.unshift({c: recommended, label: "Recommended, without hand-picks"});
   if (rows.length) {
@@ -1471,6 +1590,7 @@ def main():
     p.add_argument("--meta-weight", type=float, default=1.0, help="how much the pro meta counts: 0 off, 1 normal, 2 strong")
     p.add_argument("--lock", help='hand-picked agents, e.g. "sriderya=Jett, unsent=Killjoy"; the rest is picked around them')
     p.add_argument("--alts", type=int, default=2, help="alternative compositions to show (default 2)")
+    p.add_argument("--no-plays", action="store_true", help="don't list the set plays for the best comp")
     p.add_argument("--igl-duelist-penalty", type=float, default=4.0, help="score penalty for the IGL on duelist (default 4)")
     p.add_argument("--igl-sentinel-penalty", type=float, default=1.5, help="score penalty for the IGL on sentinel (default 1.5)")
     p.add_argument("--min-agent-games", type=int, default=6, help="min games on an agent to consider it (default 6)")

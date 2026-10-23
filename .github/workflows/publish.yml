@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [squad.json, meta.json, valo_planner.py, data/**, assets/**]
+    paths: [squad.json, meta.json, plays.json, valo_planner.py, data/**, assets/**]
 
 permissions:
   contents: write
