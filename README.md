@@ -49,7 +49,7 @@ comps; it isn't a win probability.
 
 Under the cards there's a **Plays for this comp** list: plays for every map in the current pool
 (Abyss, Bind, Corrode, Haven, Lotus, Summit, Sunset). Each map has 5 attack plays and 5 defense setups, none needing a lineup. Each play has a short **call word** (e.g. `A SPLIT`, `C GO`) and
-gives every player a job with their actual agent's ability, so the IGL can shout the call mid-match. The pipeline
+gives every player a job with their actual agent's ability, so the IGL can shout the call mid-match. Each play has a small map: coloured blobs show where util lands (smoke, flash/stun, info, trap), arrows show who moves where, and agent icons show where each player ends up; the numbers match the list next to it. The pipeline
 output lists them too.
 
 The plays live in `plays.json`. Edit the callouts or add your own plays there; each step just names a job
