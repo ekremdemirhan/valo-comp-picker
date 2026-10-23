@@ -19,6 +19,10 @@ pick the IGL and how much to follow the pro meta, then **Run workflow**. After ~
 run; the comp is on its summary page. Running it needs write access to this repo (ask to be added
 as a collaborator).
 
+**Bored of an agent?** Each player's card on the page has a dropdown: pick another agent and the rest of
+the team is re-picked around it (Undo or "Back to recommended" reverts). In the pipeline, use the
+"Hand-picked agents" field, e.g. `Sriderya=Jett, unsent181=Killjoy`.
+
 The data refreshes every Monday morning by itself.
 
 ## How a comp is scored

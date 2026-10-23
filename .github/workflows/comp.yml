@@ -44,6 +44,10 @@ on:
         type: choice
         default: Auto
         options: [Auto, Not set, MERHABA BEN MERT, Sriderya, KivoChan, bigbeko, shapeshifter, Sphooky, unsent181, PASHA, Draven esq]
+      changes:
+        description: 'Hand-picked agents (optional), e.g. "Sriderya=Jett, unsent181=Killjoy"'
+        type: string
+        default: ""
       meta:
         description: Follow the pro meta
         type: choice
@@ -67,6 +71,7 @@ jobs:
           MAP: ${{ inputs.map }}
           IGL: ${{ inputs.igl }}
           META: ${{ inputs.meta }}
+          CHANGES: ${{ inputs.changes }}
           P_MERHABA: ${{ inputs.merhaba }}
           P_SRIDERYA: ${{ inputs.sriderya }}
           P_KIVOCHAN: ${{ inputs.kivochan }}
@@ -91,4 +96,4 @@ jobs:
           case "$META" in Off) w=0 ;; Strong) w=2 ;; *) w=1 ;; esac
           igl="$IGL"; [ "$igl" = "Not set" ] && igl="none"; [ "$igl" = "Auto" ] && igl="auto"
           python valo_planner.py comp --map "$MAP" --players "$players" --igl "$igl" \
-            --meta-weight "$w" --markdown --summary "$GITHUB_STEP_SUMMARY"
+            --meta-weight "$w" --lock "$CHANGES" --markdown --summary "$GITHUB_STEP_SUMMARY"

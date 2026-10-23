@@ -566,13 +566,13 @@ def closest_pro(meta, map_name, agents):
 ROLE_PREF = {"Controller": 0, "Initiator": 1, "Sentinel": 2, "Duelist": 3}
 
 
-def suggest_igl(model, map_name, players, callers, igl_pen, meta, meta_weight=1.0, top=3):
+def suggest_igl(model, map_name, players, callers, igl_pen, meta, meta_weight=1.0, top=3, locks=None):
     """Try each candidate as IGL and keep the one whose best comp scores highest (ties: controller, then
     initiator). Candidates are the usual callers in the lineup, or everyone if none is playing."""
     pool = [p for p in players if p in callers] or list(players)
     best = None
     for p in pool:
-        comps, mode, opts = compositions(model, map_name, players, p, igl_pen, meta, meta_weight, top=top)
+        comps, mode, opts = compositions(model, map_name, players, p, igl_pen, meta, meta_weight, top=top, locks=locks)
         if not comps:
             continue
         role = next(o["role"] for q, o in comps[0]["picks"] if q == p)
@@ -583,10 +583,22 @@ def suggest_igl(model, map_name, players, callers, igl_pen, meta, meta_weight=1.
     return best
 
 
-def compositions(model, map_name, players, igl, igl_pen, meta, meta_weight=1.0, top=3, per_player=8):
+def compositions(model, map_name, players, igl, igl_pen, meta, meta_weight=1.0, top=3, per_player=8, locks=None):
     """All valid agent assignments for exactly these players, best first.
-    With pro-meta data for the map, the role structure must be one pros run there (>= 3% of games)."""
-    opts = {p: model.options(p, map_name)[:per_player] for p in players}
+    With pro-meta data for the map, the role structure must be one pros run there (>= 3% of games).
+    locks: {player: agent} chosen by hand; everyone else is picked around them."""
+    locks = locks or {}
+    taken = {locks[p] for p in players if p in locks}
+    opts = {}
+    for p in players:
+        if p in locks:
+            opts[p] = [model.estimate(p, locks[p], map_name)]
+            continue
+        o = [x for x in model.options(p, map_name) if x["agent"] not in taken][:per_player]
+        if not o:  # their usual agents are all locked by teammates: anything they've played
+            played = sorted(((s.wn, a) for (q, a), s in model.PA.items() if q == p and a not in taken), reverse=True)[:4]
+            o = sorted((model.estimate(p, a, map_name) for _, a in played), key=lambda x: -x["score"])
+        opts[p] = o
     has_meta = map_name in meta["maps"] and meta_weight > 0 and len(players) == 5
     for mode in (["meta", "loose"] if has_meta else ["roles", "controller", "loose"]):
         found = []
@@ -707,12 +719,29 @@ def comp_report(args):
     if missing:
         return [f"No match data for: {', '.join(missing)}. Check their tracker.gg profile is public."], False
     meta = load_meta(args.meta)
+    locks = {}
+    for item in (args.lock or "").split(","):
+        if not item.strip():
+            continue
+        if "=" not in item:
+            return [f'Use name=Agent for hand-picked agents, e.g. "sriderya=Jett" (got "{item.strip()}").'], False
+        who, agent = (x.strip() for x in item.split("=", 1))
+        p = resolve_player(who, roster)
+        if p not in players:
+            return [f"{short(p)} has a hand-picked agent but isn't one of the selected players."], False
+        a = next((x for x in ROLES if norm(x) == norm(agent)), None)
+        if not a:
+            return [f"{agent!r} isn't a Valorant agent."], False
+        if a in locks.values():
+            return [f"{a} is hand-picked for two players."], False
+        locks[p] = a
     igl_pen = {"Duelist": args.igl_duelist_penalty, "Sentinel": args.igl_sentinel_penalty}
     choice = (args.igl or "auto").strip().lower()
     suggested = None
     if choice == "auto":
         callers = set(load_squad(args.squad).get("callers", []))
-        suggested = suggest_igl(model, map_name, players, callers, igl_pen, meta, args.meta_weight, top=args.alts + 1)
+        suggested = suggest_igl(model, map_name, players, callers, igl_pen, meta, args.meta_weight, top=args.alts + 1,
+                                locks=locks)
         if not suggested:
             return ["Couldn't build a composition (not enough agent data)."], False
         igl, comps, mode, opts = suggested["igl"], suggested["comps"], suggested["mode"], suggested["opts"]
@@ -721,7 +750,7 @@ def comp_report(args):
         if igl and igl not in players:
             return [f"The IGL ({short(igl)}) isn't one of the selected players. Tick them too, or pick another IGL."], False
         comps, mode, opts = compositions(model, map_name, players, igl, igl_pen if igl else {},
-                                         meta, args.meta_weight, top=args.alts + 1)
+                                         meta, args.meta_weight, top=args.alts + 1, locks=locks)
     if not comps:
         return ["Couldn't build a composition (not enough agent data)."], False
     igl_line = "not set"
@@ -756,7 +785,7 @@ def comp_report(args):
                         "|---|---|---|---|---|---|---|"]
                 for p, o in picks:
                     pp = pro_pick(meta, map_name, o["agent"])
-                    out.append(f"| {o['role']} | **{o['agent']}** | {short(p)}{' (IGL)' if p == igl else ''} | "
+                    out.append(f"| {o['role']} | **{o['agent']}**{' (hand-picked)' if p in locks else ''} | {short(p)}{' (IGL)' if p == igl else ''} | "
                                f"{o['score']:.1f} | {o['n_map']} ({confidence(o['wn_map'])}) | {fmt_pct(o['wr_map']).strip()} | "
                                f"{'-' if pp is None else f'{pp * 100:.0f}%'} |")
             else:
@@ -767,12 +796,14 @@ def comp_report(args):
                 pp = pro_pick(meta, map_name, o["agent"])
                 pro = f", pro pick {pp * 100:.0f}%" if pp is not None else ""
                 out.append(f"  {o['role']:<10} {o['agent']:<10} {short(p):<18} score {o['score']:5.1f}  "
-                           f"{o['n_map']:>2} games here ({confidence(o['wn_map'])}){pro}{'  [IGL]' if p == igl else ''}")
+                           f"{o['n_map']:>2} games here ({confidence(o['wn_map'])}){pro}{'  [IGL]' if p == igl else ''}"
+                           f"{'  [hand-picked]' if p in locks else ''}")
         cp = closest_pro(meta, map_name, [o["agent"] for _, o in c["picks"]])
         if cp and i == 0 and len(players) == 5:
             line = f"Closest pro comp: {', '.join(cp['comp'])} ({cp['overlap']}/5 same, pros {cp['w']}-{cp['n'] - cp['w']})"
             out += ["", line] if md else ["  " + line]
 
+    opts = {p: model.options(p, map_name) for p in players}
     if md:
         out += ["", "### Each player's best agents on this map", "", "| Player | 1st | 2nd | 3rd | 4th |", "|---|---|---|---|---|"]
         for p in players:
@@ -923,6 +954,13 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .here{font-size:12px;color:var(--mut);margin-top:6px;font-variant-numeric:tabular-nums}
 .foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px}
 .foot .sc{font:500 12px var(--mono);color:var(--mut)}
+.swap{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:4px}
+.swap label{font:500 10px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+.swaprow{display:flex;gap:6px}
+.swapsel{flex:1;min-width:0;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--soft);color:var(--fg);font:500 13px var(--body);text-transform:none;letter-spacing:0}
+.unlock,.changes button{padding:5px 10px;border:1px solid var(--line);border-radius:6px;background:var(--soft);color:var(--fg);font:500 12px var(--body);cursor:pointer}
+.unlock:hover,.changes button:hover{border-color:var(--mut)}
+.changes{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--accent);border-radius:8px;padding:10px 12px;font-size:13px}
 .card{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--mut);border-radius:8px;padding:12px;display:flex;flex-direction:column;min-width:0}
 .card.Duelist{border-top-color:var(--duel)}.card.Initiator{border-top-color:var(--init)}.card.Controller{border-top-color:var(--ctrl)}.card.Sentinel{border-top-color:var(--sent)}
 .role{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.08em}
@@ -990,6 +1028,10 @@ td.pn{font-weight:600}
   <b>Pro meta.</b> The team's role structure must be one that pros actually run on this map (at least 3% of games), and rarer
   structures cost points. Double sentinel is normal on Sunset but almost never seen on Haven or Lotus. Agents pros pick
   on the map get a bonus, and matching a top pro comp adds a little more. <span id="metaSrc"></span><br><br>
+  <b>Picking by hand.</b> Bored of the same agent? Use the dropdown on a player's card. That agent is locked in for this
+  map and the other players' agents are re-picked around it (the role-setup rule still applies). Agents someone hasn't
+  played are scored from their overall form, so they look average rather than bad. Undo or "Back to recommended"
+  removes the change.<br><br>
   <b>IGL.</b> Pro IGLs mostly play controller (42% of rounds) or initiator (40%), rarely sentinel (11%) and almost never
   duelist (7%). So an IGL on duelist costs 4 points and on sentinel 1.5. <i>Auto</i> tries each usual caller in the lineup
   (everyone, if none is playing) and suggests the one whose best comp scores highest.</p>
@@ -1080,8 +1122,19 @@ function closestPro(m, agents) {
   return best;
 }
 
-function compositions(M, m, players, igl, pen, metaW) {
-  const opts = players.map(p => options(M, p, m).slice(0, 8));
+// locks: {player index: agent} chosen by hand; the rest of the team is rebuilt around them
+function compositions(M, m, players, igl, pen, metaW, locks = {}) {
+  const taken = new Set(players.filter(p => locks[p]).map(p => locks[p]));
+  const opts = players.map(p => {
+    if (locks[p]) return [estimate(M, p, locks[p], m)];
+    let o = options(M, p, m).filter(x => !taken.has(x.agent)).slice(0, 8);
+    if (!o.length) {  // their usual agents are all locked by teammates: fall back to anything they've played
+      const pool = M.agents[p] || {};
+      o = Object.keys(pool).filter(a => !taken.has(a)).sort((x, y) => pool[y].wn - pool[x].wn).slice(0, 4)
+        .map(a => estimate(M, p, a, m)).sort((x, y) => y.score - x.score);
+    }
+    return o;
+  });
   const hasMeta = !!META.maps[m] && metaW > 0;
   for (const mode of hasMeta ? ["meta", "loose"] : ["roles", "controller", "loose"]) {
     const found = [], pick = [], used = new Set();
@@ -1123,8 +1176,10 @@ const dataMaps = new Set(DATA.rows.map(r => r[2]));
 const poolMaps = META.pool.filter(m => dataMaps.has(m)).sort();
 const otherMaps = [...dataMaps].filter(m => !poolMaps.includes(m)).sort();
 const allMaps = [...poolMaps, ...otherMaps];
-let state = {map: allMaps.includes("Haven") ? "Haven" : allMaps[0], sel: [], iglDuel: true, groupOnly: false, iglByMap: {}, metaW: 1};
-try { const s = JSON.parse(localStorage.getItem("compPicker2") || "null"); if (s && allMaps.includes(s.map)) state = {...state, ...s, iglByMap: s.iglByMap || {}}; } catch (e) {}
+let state = {map: allMaps.includes("Haven") ? "Haven" : allMaps[0], sel: [], iglDuel: true, groupOnly: false, iglByMap: {}, metaW: 1, locks: {}};
+try { const s = JSON.parse(localStorage.getItem("compPicker2") || "null"); if (s && allMaps.includes(s.map)) state = {...state, ...s, iglByMap: s.iglByMap || {}, locks: s.locks || {}}; } catch (e) {}
+const AGENTS = Object.keys(ROLES).sort();
+const locksFor = players => { const L = state.locks[state.map] || {}, out = {}; for (const p of players) if (L[p]) out[p] = L[p]; return out; };
 if (!state.sel.length) state.sel = [0, 1, 3, 6, 8].filter(i => i < DATA.players.length);
 const save = () => { try { localStorage.setItem("compPicker2", JSON.stringify(state)); } catch (e) {} };
 
@@ -1142,14 +1197,29 @@ function sync() {
   $("iglDuel").checked = state.iglDuel; $("groupOnly").checked = state.groupOnly; $("metaW").value = String(state.metaW);
 }
 
+// Dropdown on each card: the player's own agents first (best on this map first), then everything else.
+function agentPicker(M, p, current, players, locks) {
+  const takenBy = {}; for (const q of players) if (q !== p && locks[q]) takenBy[locks[q]] = q;
+  const pool = M.agents[p] || {};
+  const mine = Object.keys(pool).map(a => estimate(M, p, a, state.map)).sort((x, y) => y.score - x.score);
+  const mineSet = new Set(mine.map(x => x.agent));
+  const optn = (a, label) => `<option value="${esc(a)}"${a === current ? " selected" : ""}${takenBy[a] != null ? " disabled" : ""}>${esc(label)}${takenBy[a] != null ? ` (${esc(short(DATA.players[takenBy[a]]))})` : ""}</option>`;
+  const locked = locks[p] != null;
+  return `<div class="swap"><label for="sw${p}">${locked ? "Picked by hand" : "Play something else"}</label>
+    <div class="swaprow"><select id="sw${p}" class="swapsel" data-p="${p}">
+      <optgroup label="${esc(short(DATA.players[p]))}'s agents">${mine.map(x => optn(x.agent, `${x.agent} · ${x.nAgent} game${x.nAgent === 1 ? "" : "s"}`)).join("")}</optgroup>
+      <optgroup label="Other agents">${AGENTS.filter(a => !mineSet.has(a)).map(a => optn(a, `${a} · new`)).join("")}</optgroup>
+    </select>${locked ? `<button type="button" class="unlock" data-p="${p}" aria-label="Undo ${esc(short(DATA.players[p]))}'s pick" title="Undo">Undo</button>` : ""}</div></div>`;
+}
+
 // Try each candidate as IGL; keep the one whose best comp scores highest
 // (ties: the IGL on controller, then initiator). Usual callers first, everyone if none is playing.
 const ROLE_PREF = {Controller: 0, Initiator: 1, Sentinel: 2, Duelist: 3};
-function suggestIgl(M, m, players, pen, metaW) {
+function suggestIgl(M, m, players, pen, metaW, locks = {}) {
   const callers = players.filter(p => CALLERS.has(p)), pool = callers.length ? callers : players;
   let best = null;
   for (const p of pool) {
-    const r = compositions(M, m, players, p, pen, metaW);
+    const r = compositions(M, m, players, p, pen, metaW, locks);
     if (!r.comps.length) continue;
     const role = r.comps[0].picks.find(x => x.p === p).o.role;
     const key = r.comps[0].total - (ROLE_PREF[role] ?? 4) * 0.01;
@@ -1182,13 +1252,19 @@ function render() {
   const noData = players.filter(p => !(M.S.get(`P|${p}`) || {}).n);
   if (noData.length) { out.innerHTML = `<div class="msg">No games for ${noData.map(p => esc(short(DATA.players[p]))).join(", ")} with this filter. Turn off “Only count games where 3+ of us played together”.</div>`; return; }
   const pen = state.iglDuel ? IGL_PENALTY : {};
-  let igl = iglSel.igl ?? null, sugg = null, result;
-  if (iglSel.mode === "auto") {
-    sugg = suggestIgl(M, state.map, players, pen, state.metaW);
-    igl = sugg ? sugg.igl : null;
-    result = sugg ? sugg.r : compositions(M, state.map, players, null, {}, state.metaW);
-  } else result = compositions(M, state.map, players, igl, iglSel.mode === "manual" ? pen : {}, state.metaW);
-  const {comps, mode, opts} = result;
+  const locks = locksFor(players), nLocks = Object.keys(locks).length;
+  const solve = L => {
+    if (iglSel.mode === "auto") {
+      const s = suggestIgl(M, state.map, players, pen, state.metaW, L);
+      return {sugg: s, igl: s ? s.igl : null, result: s ? s.r : compositions(M, state.map, players, null, {}, state.metaW, L)};
+    }
+    const g = iglSel.igl ?? null;
+    return {sugg: null, igl: g, result: compositions(M, state.map, players, g, iglSel.mode === "manual" ? pen : {}, state.metaW, L)};
+  };
+  let {sugg, igl, result} = solve(locks);
+  const recommended = nLocks ? solve({}).result.comps[0] : null;
+  const {comps, mode} = result;
+  const opts = players.map(p => options(M, p, state.map));
   if (!comps.length) { out.innerHTML = `<div class="msg">Not enough agent data to build a composition.</div>`; return; }
   const byRole = picks => [...picks].sort((a, b) => (ORDER[a.o.role] ?? 9) - (ORDER[b.o.role] ?? 9));
   const best = comps[0];
@@ -1201,6 +1277,12 @@ function render() {
   if (mode === "loose" && META.maps[state.map] && state.metaW > 0 && n === 5)
     html += `<p class="warn">These players' agent pools can't make a role structure pros use on ${esc(state.map)}, so this is the closest possible.</p>`;
   else if (mode === "loose" || mode === "controller") html += `<p class="warn">These agent pools can't cover all four roles, so the role rule was relaxed.</p>`;
+  if (nLocks && recommended) {
+    const d = best.total - recommended.total;
+    html += `<div class="changes"><span>${nLocks} hand-picked agent${nLocks > 1 ? "s" : ""}; the rest of the team was rebuilt around ${nLocks > 1 ? "them" : "it"}.
+      ${Math.abs(d) < 0.05 ? "Same team score as the recommended comp." : `Team score ${d > 0 ? "+" : ""}${d.toFixed(1)} vs. the recommended comp.`}</span>
+      <button type="button" id="resetLocks">Back to recommended</button></div>`;
+  }
   if (best.st) html += `<div class="struct">${structText(structKey(best.picks.map(x => x.o)))} · pros run this on ${pct(best.st.share)} of ${esc(state.map)} games</div>`;
   html += `<div class="cards">` + byRole(best.picks).map(({p, o}) => {
     const [cls, txt] = conf(o.wnMap);
@@ -1213,7 +1295,8 @@ function render() {
       <div class="kv"><div><b>${A.n}</b><span>Games</span></div><div><b>${A.wn > 0.05 ? pct(A.won / A.wn) : "–"}</b><span>Win rate</span></div>
         <div><b>${f(A.acs, 0)}</b><span>ACS</span></div><div><b>${f(A.kd, 2)}</b><span>K/D</span></div></div>
       <div class="here">On ${esc(state.map)}: ${o.nMap} game${o.nMap === 1 ? "" : "s"} · WR ${pct(o.wrMap)}${o.pro != null ? ` · pros pick it ${pct(o.pro)}` : ""}</div>
-      <div class="foot"><span class="pill ${cls}">${txt}</span><span class="sc">score ${o.score.toFixed(1)}</span></div></div>`;
+      <div class="foot"><span class="pill ${cls}">${txt}</span><span class="sc">score ${o.score.toFixed(1)}</span></div>
+      ${agentPicker(M, p, o.agent, players, locks)}</div>`;
   }).join("") + `</div>`;
   const cp = closestPro(state.map, best.picks.map(x => x.o.agent));
   if (cp && n === 5) html += `<div class="procomp"><span class="k">Closest pro comp</span><span>${cp.comp.map(esc).join(" · ")}</span><span class="match">${cp.overlap}/5 same · pros ${cp.w}–${cp.n - cp.w}</span></div>`;
@@ -1240,6 +1323,16 @@ $("metaW").addEventListener("change", e => { state.metaW = +e.target.value; save
 $("iglDuel").addEventListener("change", e => { state.iglDuel = e.target.checked; save(); render(); });
 $("groupOnly").addEventListener("change", e => { state.groupOnly = e.target.checked; save(); render(); });
 $("clear").addEventListener("click", () => { state.sel = []; sync(); save(); render(); });
+$("results").addEventListener("change", e => {
+  if (!e.target.classList.contains("swapsel")) return;
+  const L = state.locks[state.map] ||= {};
+  L[+e.target.dataset.p] = e.target.value; save(); render();
+});
+$("results").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.id === "resetLocks") { delete state.locks[state.map]; save(); render(); }
+  else if (b.classList.contains("unlock")) { const L = state.locks[state.map] || {}; delete L[+b.dataset.p]; save(); render(); }
+});
 sync(); render();
 </script>
 """
@@ -1286,6 +1379,7 @@ def main():
     p.add_argument("--igl", default="auto",
                    help='who calls: a player name, "auto" (default: suggest the best caller) or "none"')
     p.add_argument("--meta-weight", type=float, default=1.0, help="how much the pro meta counts: 0 off, 1 normal, 2 strong")
+    p.add_argument("--lock", help='hand-picked agents, e.g. "sriderya=Jett, unsent=Killjoy"; the rest is picked around them')
     p.add_argument("--alts", type=int, default=2, help="alternative compositions to show (default 2)")
     p.add_argument("--igl-duelist-penalty", type=float, default=4.0, help="score penalty for the IGL on duelist (default 4)")
     p.add_argument("--igl-sentinel-penalty", type=float, default=1.5, help="score penalty for the IGL on sentinel (default 1.5)")
