@@ -1535,7 +1535,7 @@ function planPlay(PL, m, pl, picks) {
 // PLANNER END
 function playsFor(m, picks) { return ((PLAYS.maps || {})[m] || []).map(pl => planPlay(PLAYS, m, pl, picks)); }
 const ROLE_COL = {Controller: "var(--ctrl)", Initiator: "var(--init)", Duelist: "var(--duel)", Sentinel: "var(--sent)"};
-const KIND = {smoke: "smoke", smoke2: "smoke", watch: "info", wall: "smoke", flash: "flash", stun: "flash", recon: "info", clear: "info", trip: "trap", slow: "trap", hold: "trap", molly: "molly", entry: "info", buff: "info"};
+const KIND = {trap: "trap", info: "info", smoke: "smoke", smoke2: "smoke", watch: "info", wall: "smoke", flash: "flash", stun: "flash", recon: "info", clear: "info", trip: "trap", slow: "trap", hold: "trap", molly: "molly", entry: "info", buff: "info"};
 let mapSeq = 0;
 // small minimap: util where it lands, arrows for who moves where, agent icon where each player ends up
 function playMap(m, pl) {
