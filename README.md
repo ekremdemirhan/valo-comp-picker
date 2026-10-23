@@ -47,13 +47,14 @@ comps; it isn't a win probability.
 
 ## Plays for the comp
 
-Under the cards there's a **Plays for this comp** list: 3 attack plays and 1 defense setup per map in the current pool
-(Abyss, Bind, Corrode, Haven, Lotus, Summit, Sunset). Each play has a short **call word** (e.g. `A SPLIT`, `C GO`) and
+Under the cards there's a **Plays for this comp** list: plays for every map in the current pool
+(Abyss, Bind, Corrode, Haven, Lotus, Summit, Sunset). Each map has 5 attack plays and 5 defense setups, none needing a lineup. Each play has a short **call word** (e.g. `A SPLIT`, `C GO`) and
 gives every player a job with their actual agent's ability, so the IGL can shout the call mid-match. The pipeline
 output lists them too.
 
 The plays live in `plays.json`. Edit the callouts or add your own plays there; each step just names a job
 (`controller`, `initiator`, `duelist`, `sentinel`, or `fifth` for whoever is left over) and the kind of utility it wants.
+If you add one that needs a lineup, set `"lineup": true` and its name gets "(lineup)" on the page.
 
 ## Setup (once)
 

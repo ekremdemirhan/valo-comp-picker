@@ -562,7 +562,10 @@ def plays_for(plays, map_name, picks):
             ability = next((have[k] for k in st.get("use", []) if k in have), None)
             steps.append({"player": p, "agent": agent, "ability": ability, "do": st["do"],
                           "missing": None if ability or not st.get("use") else st["use"][0]})
-        out.append({**{k: pl.get(k, "") for k in ("name", "side", "call", "idea", "after")}, "steps": steps})
+        row = {k: pl.get(k, "") for k in ("name", "side", "call", "idea", "after")}
+        if pl.get("lineup"):
+            row["name"] += " (lineup)"
+        out.append({**row, "steps": steps})
     return out
 
 
@@ -1003,6 +1006,7 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .procomp{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
 .procomp .k{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
 .plays{display:grid;gap:8px}
+.plays .pside{margin:6px 0 0;font:700 18px var(--display);letter-spacing:.04em;text-transform:uppercase}
 .plays .phint{margin:0;font-size:13px;color:var(--mut)}
 .play{background:var(--card);border:1px solid var(--line);border-radius:8px}
 .play summary{cursor:pointer;padding:10px 12px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;list-style:none}
@@ -1284,7 +1288,7 @@ function assignSlots(picks) {
 }
 function playsFor(m, picks) {
   const slots = assignSlots(picks), ab = PLAYS.abilities || {};
-  return ((PLAYS.maps || {})[m] || []).map(pl => ({...pl, steps: pl.steps.filter(st => slots[st.slot]).map(st => {
+  return ((PLAYS.maps || {})[m] || []).map(pl => ({...pl, name: pl.name + (pl.lineup ? " (lineup)" : ""), steps: pl.steps.filter(st => slots[st.slot]).map(st => {
     const {p, o} = slots[st.slot], have = ab[o.agent] || {};
     const k = (st.use || []).find(k => have[k]);
     return {p, agent: o.agent, ability: k ? have[k] : null, do: st.do, missing: !k && (st.use || []).length ? st.use[0] : null};
@@ -1293,12 +1297,14 @@ function playsFor(m, picks) {
 function playsHtml(m, picks) {
   const list = playsFor(m, picks);
   if (!list.length) return "";
-  return `<div><h3>Plays for this comp</h3><div class="plays"><p class="phint">Tap one to open it. Shout the call word, everyone knows their job.</p>` +
-    list.map(pl => `<details class="play"><summary><span class="side ${esc(pl.side)}">${esc(pl.side)}</span><span class="call">${esc(pl.call)}</span>
+  const one = pl => `<details class="play"><summary><span class="side ${esc(pl.side)}">${esc(pl.side)}</span><span class="call">${esc(pl.call)}</span>
       <span class="pname">${esc(pl.name)}</span><span class="idea">${esc(pl.idea)}</span></summary>
       <ol>${pl.steps.map(s => `<li><b>${esc(short(DATA.players[s.p]))}</b> (${esc(s.agent)}): ${esc(s.do)}
         ${s.ability ? `<span class="ab">${esc(s.ability)}</span>` : ""}${s.missing ? `<span class="miss"> no ${esc(s.missing)} on ${esc(s.agent)}: skip it or improvise</span>` : ""}</li>`).join("")}</ol>
-      ${pl.after ? `<div class="after"><b>After:</b> ${esc(pl.after)}</div>` : ""}</details>`).join("") + `</div></div>`;
+      ${pl.after ? `<div class="after"><b>After:</b> ${esc(pl.after)}</div>` : ""}</details>`;
+  const side = k => { const xs = list.filter(pl => pl.side === k); return xs.length ? `<h4 class="pside">${k}</h4>` + xs.map(one).join("") : ""; };
+  return `<div><h3>Plays for this comp</h3><div class="plays"><p class="phint">Tap one to open it. Shout the call word and everyone knows their job. No lineups needed: all util is thrown freehand.</p>` +
+    side("Attack") + side("Defense") + `</div></div>`;
 }
 
 function closestPro(m, agents) {
