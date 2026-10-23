@@ -1021,9 +1021,9 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .play ol{margin:0;padding:0 12px 4px 34px;display:grid;gap:6px;font-size:14px}
 .play li b{font-weight:600}
 .play .ab{font:500 11px var(--mono);padding:1px 6px;border-radius:4px;background:var(--soft);border:1px solid var(--line);white-space:nowrap}
-.play .pbody{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:12px;padding:0 12px 4px;align-items:start}
-@container (max-width:620px){.play .pbody{grid-template-columns:1fr}}
-.pmap svg{display:block;width:100%;max-width:420px;aspect-ratio:1;border-radius:8px;background:#1a1d24}
+.play .pbody{display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:12px;padding:0 12px 4px;align-items:start}
+@container (max-width:720px){.play .pbody{grid-template-columns:1fr}}
+.pmap svg{display:block;width:100%;max-width:520px;aspect-ratio:1;border-radius:8px;background:#1a1d24}
 .pmap .mkey{display:flex;flex-wrap:wrap;gap:4px 10px;font:500 11px var(--mono);color:var(--mut);margin-top:4px}
 .pmap .k{display:inline-block;width:10px;height:10px;margin-right:4px;vertical-align:-1px;border-radius:50%}
 .pmap .k.smoke{background:var(--ctrl);opacity:.7}.pmap .k.flash{background:#ffd84a;border-radius:2px;transform:rotate(45deg)}
@@ -1317,38 +1317,49 @@ function playMap(m, pl) {
   const pt = v => Array.isArray(v) ? v : G.spots[v];
   const route = g => (typeof g === "string" ? G.routes[g] || [] : g || []).map(pt).filter(Boolean);
   const id = "pm" + (++mapSeq);
+  // zoom to the part of the map this play uses
+  const used = [];
+  pl.steps.forEach(s => { used.push(...route(s.go)); s.at.forEach(a => pt(a) && used.push(pt(a))); if (s.pos && pt(s.pos)) used.push(pt(s.pos)); });
+  let x0 = 0, y0 = 0, w = 1;
+  if (used.length) {
+    const xs = used.map(p => p[0]), ys = used.map(p => p[1]);
+    const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+    w = Math.min(1, Math.max(.6, Math.max(...xs) - Math.min(...xs) + .18, Math.max(...ys) - Math.min(...ys) + .18));
+    x0 = Math.min(Math.max(cx - w / 2, 0), 1 - w); y0 = Math.min(Math.max(cy - w / 2, 0), 1 - w);
+  }
+  const z = w; // marker sizes scale with the zoom so they look the same on screen
   let under = "", over = "", heads = "";
-  const badge = (x, y, i, col) => `<g transform="translate(${x} ${y})"><circle r=".026" fill="${col}" stroke="#fff" stroke-width=".005"/><text y=".011" text-anchor="middle" font-size=".032" font-weight="700" fill="#fff">${i}</text></g>`;
+  const badge = (x, y, i, col) => `<g transform="translate(${x} ${y})"><circle r="${.026 * z}" fill="${col}" stroke="#fff" stroke-width="${.005 * z}"/><text y="${.011 * z}" text-anchor="middle" font-size="${.032 * z}" font-weight="700" fill="#fff">${i}</text></g>`;
   const agentAt = (x, y, s, i) => {
     const u = ICONS[s.agent] ? `https://media.valorant-api.com/agents/${ICONS[s.agent]}/displayicon.png` : "";
     const col = ROLE_COL[s.role] || "#999";
-    return `<g><circle cx="${x}" cy="${y}" r=".036" fill="#111" stroke="${col}" stroke-width=".008"/>` +
-      (u ? `<image href="${u}" x="${x - .033}" y="${y - .033}" width=".066" height=".066" clip-path="url(#${id}c${i})"/><clipPath id="${id}c${i}"><circle cx="${x}" cy="${y}" r=".032"/></clipPath>` : "") +
-      badge(x + .034, y - .03, i, col) + `</g>`;
+    return `<g><circle cx="${x}" cy="${y}" r="${.036 * z}" fill="#111" stroke="${col}" stroke-width="${.008 * z}"/>` +
+      (u ? `<image href="${u}" x="${x - .033 * z}" y="${y - .033 * z}" width="${.066 * z}" height="${.066 * z}" clip-path="url(#${id}c${i})"/><clipPath id="${id}c${i}"><circle cx="${x}" cy="${y}" r="${.032 * z}"/></clipPath>` : "") +
+      badge(x + .034 * z, y - .03 * z, i, col) + `</g>`;
   };
   pl.steps.forEach((s, k) => {
     const i = k + 1, col = ROLE_COL[s.role] || "#999", kind = KIND[s.kind] || "info";
     const r = route(s.go);
     if (r.length > 1) {
       heads += `<marker id="${id}h${i}" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${col}"/></marker>`;
-      under += `<polyline points="${r.map(p => p.join(",")).join(" ")}" fill="none" stroke="#000" stroke-opacity=".5" stroke-width=".016" stroke-linejoin="round" stroke-linecap="round"/>` +
-        `<polyline points="${r.map(p => p.join(",")).join(" ")}" fill="none" stroke="${col}" stroke-width=".009" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#${id}h${i})"/>`;
+      under += `<polyline points="${r.map(p => p.join(",")).join(" ")}" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="${.016 * z}" stroke-linejoin="round" stroke-linecap="round"/>` +
+        `<polyline points="${r.map(p => p.join(",")).join(" ")}" fill="none" stroke="${col}" stroke-width="${.009 * z}" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#${id}h${i})"/>`;
     }
     for (const a of s.at) {
       const p = pt(a); if (!p) continue;
       const [x, y] = p;
-      if (kind === "smoke") under += `<circle cx="${x}" cy="${y}" r=".05" fill="${col}" fill-opacity=".55" stroke="#fff" stroke-opacity=".8" stroke-width=".004"/>`;
-      else if (kind === "flash") under += `<polygon points="${[...Array(16)].map((_, j) => { const a2 = j * Math.PI / 8, rr = j % 2 ? .018 : .045; return [x + rr * Math.cos(a2), y + rr * Math.sin(a2)].map(v => v.toFixed(4)).join(","); }).join(" ")}" fill="#ffd84a" stroke="${col}" stroke-width=".005"/>`;
-      else if (kind === "trap") under += `<rect x="${x - .025}" y="${y - .025}" width=".05" height=".05" transform="rotate(45 ${x} ${y})" fill="${col}" fill-opacity=".85" stroke="#fff" stroke-width=".004"/>`;
-      else if (kind === "molly") under += `<circle cx="${x}" cy="${y}" r=".035" fill="#ff7a1a" fill-opacity=".7" stroke="#fff" stroke-width=".004"/>`;
-      else under += `<circle cx="${x}" cy="${y}" r=".04" fill="none" stroke="${col}" stroke-width=".008" stroke-dasharray=".012 .008"/><circle cx="${x}" cy="${y}" r=".01" fill="${col}"/>`;
-      over += badge(x + .03, y - .03, i, col);
+      if (kind === "smoke") under += `<circle cx="${x}" cy="${y}" r="${.05 * z}" fill="${col}" fill-opacity=".55" stroke="#fff" stroke-opacity=".8" stroke-width="${.004 * z}"/>`;
+      else if (kind === "flash") under += `<polygon points="${[...Array(16)].map((_, j) => { const a2 = j * Math.PI / 8, rr = (j % 2 ? .018 : .045) * z; return [x + rr * Math.cos(a2), y + rr * Math.sin(a2)].map(v => v.toFixed(4)).join(","); }).join(" ")}" fill="#ffd84a" stroke="${col}" stroke-width="${.005 * z}"/>`;
+      else if (kind === "trap") under += `<rect x="${x - .025 * z}" y="${y - .025 * z}" width="${.05 * z}" height="${.05 * z}" transform="rotate(45 ${x} ${y})" fill="${col}" fill-opacity=".85" stroke="#fff" stroke-width="${.004 * z}"/>`;
+      else if (kind === "molly") under += `<circle cx="${x}" cy="${y}" r="${.035 * z}" fill="#ff7a1a" fill-opacity=".7" stroke="#fff" stroke-width="${.004 * z}"/>`;
+      else under += `<circle cx="${x}" cy="${y}" r="${.04 * z}" fill="none" stroke="${col}" stroke-width="${.008 * z}" stroke-dasharray="${.012 * z} ${.008 * z}"/><circle cx="${x}" cy="${y}" r="${.01 * z}" fill="${col}"/>`;
+      over += badge(x + .03 * z, y - .03 * z, i, col);
     }
     const end = s.pos ? pt(s.pos) : r.length ? r[r.length - 1] : null;
     if (end) over += agentAt(end[0], end[1], s, i);
   });
-  return `<div class="pmap"><svg viewBox="0 0 1 1" role="img" aria-label="${esc(pl.name)} on ${esc(m)}"><defs>${heads}</defs>
-    <rect width="1" height="1" fill="#1a1d24"/><image href="${G.img}" width="1" height="1" opacity=".9"/>${under}${over}</svg>
+  return `<div class="pmap"><svg viewBox="${x0} ${y0} ${w} ${w}" role="img" aria-label="${esc(pl.name)} on ${esc(m)}"><defs>${heads}</defs>
+    <rect x="${x0}" y="${y0}" width="${w}" height="${w}" fill="#1a1d24"/><image href="${G.img}" width="1" height="1" opacity=".9"/>${under}${over}</svg>
     <div class="mkey"><span><i class="k smoke"></i>smoke</span><span><i class="k flash"></i>flash / stun</span><span><i class="k info"></i>info</span><span><i class="k trap"></i>trap</span><span>→ move</span></div></div>`;
 }
 
