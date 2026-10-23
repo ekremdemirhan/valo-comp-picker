@@ -27,17 +27,23 @@ The data refreshes every Monday morning by itself.
 
 ## How a comp is scored
 
-- **Our own games:** each player's score on an agent on that map is half estimated win rate, half
-  impact (ACS, K/D and ADR compared with others on the same role). A game's weight halves every
-  90 days. Small samples are pulled toward the player's overall form. An agent needs 6+ games, some
-  of them recent, to count.
-- **Pro meta:** the team's role setup must be one pros run on that map in at least 3% of games
-  (so double sentinel is fine on Sunset but not on Haven), pro-picked agents get a bonus, and
-  matching a top pro comp adds a little. "Follow the pro meta: Off" turns this off.
-- **IGL:** pro IGLs mostly play controller (42% of rounds) or initiator (40%), rarely sentinel (11%) and almost
-  never duelist (7%), so an IGL on duelist costs 4 points and on sentinel 1.5. With **Auto** (the default), the
-  tool tries each usual caller in the lineup (`callers` in `squad.json`; everyone if none is playing) and
-  suggests the one whose best comp scores highest. You can always pick the IGL yourself.
+**Player score** (one player, one agent, one map) = 50 × estimated win rate + 25 × impact.
+Impact compares ACS (half), K/D and ADR (a quarter each) with everyone in the squad on the same role; 1.0 is
+average. So an average player on an agent scores **50**, and 1 point = 2 percentage points of win rate.
+Recent games count more (weight halves every 90 days), and small samples are pulled toward the player's form on
+that agent and that map, so a short lucky run doesn't dominate. An agent needs 6+ games to be suggested.
+
+**Team score** = average of the five player scores + pro meta − IGL role penalty.
+
+- Pro meta (VCT 2026, × the "Follow the pro meta" setting: Off 0, Normal 1, Strong 2): agent fit −3…+5 per agent
+  (averaged), role setup 0 for the most common pro setup down to −8 (setups under 3% of pro games aren't allowed),
+  +1.5 / +0.75 for matching all five / four agents of a top pro comp.
+- IGL role: −4 on the IGL's score on duelist, −1.5 on sentinel (pro IGLs play controller 42% and initiator 40% of
+  rounds, sentinel 11%, duelist 7%).
+
+**Reading differences:** under 1 point ≈ the same, 1–3 a small edge, 3+ a clear difference. On our data the best and
+second-best comp are usually ~0.4 apart; the best beats a typical valid comp for the same five by ~5.7. It ranks
+comps; it isn't a win probability.
 
 ## Setup (once)
 

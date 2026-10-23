@@ -606,8 +606,8 @@ def compositions(model, map_name, players, igl, igl_pen, meta, meta_weight=1.0, 
             agents = [o["agent"] for o in combo]
             if len(set(agents)) < len(agents):
                 continue
-            own = sum(o["score"] - (igl_pen.get(o["role"], 0) if p == igl else 0)
-                      for p, o in zip(players, combo)) / len(players)
+            own = sum(o["score"] for o in combo) / len(players)
+            ipen = sum(igl_pen.get(o["role"], 0) for p, o in zip(players, combo) if p == igl) / len(players)
             bonus, st = 0.0, None
             if has_meta:
                 st = struct_info(meta, map_name, struct_key(combo))
@@ -622,7 +622,7 @@ def compositions(model, map_name, players, igl, igl_pen, meta, meta_weight=1.0, 
                     continue
                 if mode == "controller" and "Controller" not in roles:
                     continue
-            found.append({"total": own + bonus, "own": own, "bonus": bonus, "st": st,
+            found.append({"total": own - ipen + bonus, "own": own, "igl_pen": ipen, "bonus": bonus, "st": st,
                           "picks": list(zip(players, combo))})
         if found:
             found.sort(key=lambda x: -x["total"])
@@ -774,12 +774,20 @@ def comp_report(args):
     elif mode == "loose":
         out.append(f"Note: these agent pools can't make a role setup pros use on {map_name}; showing the closest possible.")
 
+    def verdict(d):
+        return "about the same" if d < 1 else "slightly behind" if d < 3 else "clearly behind"
+
     for i, c in enumerate(comps):
         title = "Best composition" if i == 0 else f"Alternative {i}"
         setup = f"; pros run this role setup in {c['st']['share'] * 100:.0f}% of games here" if c["st"] else ""
+        parts = f"our stats {c['own']:.1f}, pro meta {c['bonus']:+.1f}" + (f", IGL role {-c['igl_pen']:+.1f}" if c["igl_pen"] else "")
+        gap = "" if i == 0 else f" ({comps[0]['total'] - c['total']:+.1f} behind, {verdict(comps[0]['total'] - c['total'])})".replace("+", "")
         picks = sorted(c["picks"], key=lambda x: ROLE_ORDER.get(x[1]["role"], 9))
         if md:
-            out += ["", f"### {title}", f"Team score {c['total']:.1f} (own stats {c['own']:.1f}, meta {c['bonus']:+.1f}){setup}", ""]
+            if i == 0:
+                out += ["", f"# Team score: {c['total']:.1f}", f"{parts}{setup}", "", f"### {title}", ""]
+            else:
+                out += ["", f"### {title}: {c['total']:.1f}{gap}", ""]
             if i == 0:
                 out += ["| Role | Agent | Player | Score | Games here | Recent WR here | Pro pick here |",
                         "|---|---|---|---|---|---|---|"]
@@ -791,7 +799,7 @@ def comp_report(args):
             else:
                 out.append(", ".join(f"**{o['agent']}** {short(p)}" for p, o in picks))
         else:
-            out.append(f"\n{title}  (team score {c['total']:.1f}: own stats {c['own']:.1f}, meta {c['bonus']:+.1f}{setup})")
+            out.append(f"\n{title}: TEAM SCORE {c['total']:.1f}{gap}  ({parts}{setup})")
             for p, o in picks:
                 pp = pro_pick(meta, map_name, o["agent"])
                 pro = f", pro pick {pp * 100:.0f}%" if pp is not None else ""
@@ -809,7 +817,10 @@ def comp_report(args):
         for p in players:
             cells = [f"{o['agent']} {o['score']:.0f}" for o in opts[p][:4]] + [""] * 4
             out.append(f"| {short(p)} | " + " | ".join(cells[:4]) + " |")
-        out += ["", f"_Our data as of {data['asOf']}. Pro meta: {meta.get('asOf', 'n/a')}._"]
+        out += ["", "_Team score = average player score (50 = an average player on that agent) + pro meta − IGL role penalty. "
+                "Under 1 point apart: about the same; 1–3: a small edge; 3+: a clear difference. "
+                "Full explanation: README → How a comp is scored._",
+                "", f"_Our data as of {data['asOf']}. Pro meta: {meta.get('asOf', 'n/a')}._"]
     else:
         out.append("\nEach player's best agents on this map:")
         for p in players:
@@ -958,6 +969,31 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .here{font-size:12px;color:var(--mut);margin-top:6px;font-variant-numeric:tabular-nums}
 .foot{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px}
 .foot .sc{font:500 12px var(--mono);color:var(--mut)}
+.psc{font:700 22px/1 var(--display);font-variant-numeric:tabular-nums;display:flex;flex-direction:column;align-items:flex-end}
+.psc small{font:500 9px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+.scorebar{display:flex;flex-wrap:wrap;align-items:center;gap:14px 28px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 18px}
+.bigscore{display:flex;flex-direction:column;line-height:1}
+.bigscore .num{font:700 64px/0.9 var(--display);font-variant-numeric:tabular-nums;color:var(--fg)}
+.bigscore .cap{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin-top:6px}
+.parts{display:flex;flex-wrap:wrap;gap:12px 24px;flex:1;min-width:0}
+.parts div{display:flex;flex-direction:column;min-width:0}
+.parts b{font:700 28px/1 var(--display);font-variant-numeric:tabular-nums}
+.parts span{font-size:11px;color:var(--mut);margin-top:4px;max-width:26ch}
+.pos{color:var(--init)}.neg{color:var(--duel)}
+.howlink{font-size:13px;color:var(--accent);white-space:nowrap}
+.alt{align-items:center}
+.altscore{display:flex;align-items:baseline;gap:8px;min-width:150px}
+.anum{font:700 30px/1 var(--display);font-variant-numeric:tabular-nums}
+.delta{font:600 14px var(--mono)}
+.verdict{font-size:12px;color:var(--mut)}
+.altpicks{display:flex;flex-wrap:wrap;gap:4px 14px;flex:1;min-width:0}
+.altlbl{width:100%;font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+.how{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-top:26px;max-width:80ch;scroll-margin-top:16px}
+.how h3{margin:0 0 10px}.how h4{margin:16px 0 6px;font:600 15px var(--body)}
+.how p,.how li{font-size:14px;line-height:1.55}.how ul{margin:6px 0;padding-left:20px}
+.formula{font:500 13px var(--mono);background:var(--soft);border-radius:6px;padding:8px 10px;overflow-x:auto;white-space:nowrap}
+.how table{margin:8px 0;font-size:13px}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
 .swap{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:4px}
 .swap label{font:500 10px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
 .swaprow{display:flex;gap:6px}
@@ -1024,12 +1060,43 @@ td.pn{font-weight:600}
     </section>
     <section class="results" id="results" aria-live="polite"></section>
   </div>
-  <p class="note"><b>How it picks.</b> Each player gets a score per agent on the chosen map from our own games: half
-  estimated win rate, half impact (ACS, K/D and ADR compared with others on the same role). Recent games count more
-  (a game's weight halves every 90 days) and small samples are pulled toward the player's overall form, so a 3–0 streak
-  doesn't dominate. An agent needs 6+ games, some of them recent, to be considered. The win rate, ACS and K/D on
-  each card are also weighted toward recent games.<br><br>
-  <b>Pro meta.</b> The team's role structure must be one that pros actually run on this map (at least 3% of games), and rarer
+  <section class="how" id="how">
+    <h3>How the score works</h3>
+    <h4>1. Player score: one player on one agent on this map</h4>
+    <p class="formula">player score = 50 × estimated win rate + 25 × impact</p>
+    <ul>
+      <li><b>Impact</b> compares ACS (half), K/D (a quarter) and ADR (a quarter) with everyone in our squad who plays the same
+        role, so a controller isn't marked down for lower ACS. 1.0 is average for the role.</li>
+      <li>An average player on an agent therefore scores <b>50</b> (50 × 50% + 25 × 1.0). One point equals 2 percentage points of
+        win rate, or 4% more impact than the role average.</li>
+      <li><b>Recent games count more:</b> a game's weight halves every 90 days.</li>
+      <li><b>Small samples are pulled toward bigger ones.</b> The estimate for an agent on a map starts from the player's form on
+        that agent and on that map, and only moves away as games pile up. So a 3–0 run on one map nudges the score instead of
+        making it 100%. An agent needs 6+ games, some of them recent, to be suggested.</li>
+    </ul>
+    <h4>2. Team score: the five together</h4>
+    <p class="formula">team score = average of the 5 player scores + pro meta − IGL role penalty</p>
+    <ul>
+      <li><b>Pro meta</b> (from VCT 2026 matches on this map), multiplied by the "Follow the pro meta" setting (Off 0, Normal 1, Strong 2):
+        <ul>
+          <li><i>Agent fit</i>: each agent scores from −3 (pros never pick it here) to +5 (picked every game), averaged over the five.</li>
+          <li><i>Role setup</i>: 0 for the setup pros use most on this map, down to −8 for rare ones. Setups pros use in fewer
+            than 3% of games aren't allowed at all.</li>
+          <li><i>Pro comp match</i>: +1.5 if all five agents match a top pro comp, +0.75 for four.</li>
+        </ul></li>
+      <li><b>IGL role penalty</b>: −4 on that player's score if the IGL is on duelist, −1.5 on sentinel (so −0.8 or −0.3 on the team).</li>
+    </ul>
+    <h4>3. Reading the difference between comps</h4>
+    <table><tbody>
+      <tr><td><b>under 1 point</b></td><td>about the same: pick whichever the players prefer</td></tr>
+      <tr><td><b>1–3 points</b></td><td>a small edge</td></tr>
+      <tr><td><b>3+ points</b></td><td>a clear difference</td></tr>
+    </tbody></table>
+    <p>On our data, the best and second-best comp for a lineup are usually only ~0.4 apart, while the best comp beats a typical
+      valid comp for the same five by ~5.7. The score ranks comps against each other; it isn't a win probability.</p>
+  </section>
+
+  <p class="note"><b>Pro meta.</b> The team's role structure must be one that pros actually run on this map (at least 3% of games), and rarer
   structures cost points. Double sentinel is normal on Sunset but almost never seen on Haven or Lotus. Agents pros pick
   on the map get a bonus, and matching a top pro comp adds a little more. <span id="metaSrc"></span><br><br>
   <b>Picking by hand.</b> Bored of the same agent? Use the dropdown on a player's card. That agent is locked in for this
@@ -1144,19 +1211,22 @@ function compositions(M, m, players, igl, pen, metaW, locks = {}) {
     const found = [], pick = [], used = new Set();
     (function rec(i, total) {
       if (i === players.length) {
-        let bonus = 0, st = null;
+        let bonus = 0, st = null, parts = null;
         if (hasMeta && players.length === 5) {
           st = structInfo(m, structKey(pick));
           if (mode === "meta" && !st.allowed) return;
           const cp = closestPro(m, pick.map(o => o.agent));
-          bonus = metaW * (pick.reduce((s, o) => s + agentMeta(m, o.agent), 0) / 5 + st.bonus +
-                           (cp && cp.n >= 5 ? (cp.overlap === 5 ? 1.5 : cp.overlap === 4 ? 0.75 : 0) : 0));
+          parts = {fit: metaW * pick.reduce((s, o) => s + agentMeta(m, o.agent), 0) / 5, setup: metaW * st.bonus,
+                   match: metaW * (cp && cp.n >= 5 ? (cp.overlap === 5 ? 1.5 : cp.overlap === 4 ? 0.75 : 0) : 0)};
+          bonus = parts.fit + parts.setup + parts.match;
         } else {
           const roles = new Set(pick.map(o => o.role));
           if (mode === "roles" && !REQ.every(r => roles.has(r))) return;
           if (mode === "controller" && !roles.has("Controller")) return;
         }
-        found.push({total: total / players.length + bonus, own: total / players.length, bonus, st, picks: pick.map((o, j) => ({p: players[j], o}))});
+        const gi = players.indexOf(igl), iglPen = gi >= 0 ? (pen[pick[gi].role] || 0) / players.length : 0;
+        found.push({total: total / players.length + bonus, own: total / players.length + iglPen, iglPen, bonus, parts, st,
+                    picks: pick.map((o, j) => ({p: players[j], o}))});
         return;
       }
       for (const o of opts[i]) {
@@ -1284,9 +1354,20 @@ function render() {
   if (nLocks && recommended) {
     const d = best.total - recommended.total;
     html += `<div class="changes"><span>${nLocks} hand-picked agent${nLocks > 1 ? "s" : ""}; the rest of the team was rebuilt around ${nLocks > 1 ? "them" : "it"}.
-      ${Math.abs(d) < 0.05 ? "Same team score as the recommended comp." : `Team score ${d > 0 ? "+" : ""}${d.toFixed(1)} vs. the recommended comp.`}</span>
+      ${Math.abs(d) < 0.05 ? "Same team score as the recommended comp." : `${d > 0 ? "+" : "−"}${Math.abs(d).toFixed(1)} vs. the recommended comp (${recommended.total.toFixed(1)}).`}</span>
       <button type="button" id="resetLocks">Back to recommended</button></div>`;
   }
+  const f1 = x => (x > 0.05 ? "+" : x < -0.05 ? "−" : "±") + Math.abs(x).toFixed(1);
+  const verdict = d => d < 1 ? "about the same" : d < 3 ? "slightly behind" : "clearly behind";
+  const tip = best.parts ? `Agent fit ${f1(best.parts.fit)} · role setup ${f1(best.parts.setup)} · pro comp match ${f1(best.parts.match)}` : "";
+  html += `<section class="scorebar" aria-label="Team score">
+    <div class="bigscore"><span class="num">${best.total.toFixed(1)}</span><span class="cap">Team score</span></div>
+    <div class="parts">
+      <div><b>${best.own.toFixed(1)}</b><span>Our stats<br>avg of ${players.length} players</span></div>
+      <div title="${esc(tip)}"><b class="${best.bonus >= 0 ? "pos" : "neg"}">${f1(best.bonus)}</b><span>Pro meta${best.parts ? "<br>" + esc(tip.replace(/ · /g, ", ")) : ""}</span></div>
+      ${best.iglPen ? `<div><b class="neg">${f1(-best.iglPen)}</b><span>IGL on ${esc((best.picks.find(x => x.p === igl) || {o: {}}).o.role || "")}</span></div>` : ""}
+    </div>
+    <a class="howlink" href="#how">How is this scored?</a></section>`;
   if (best.st) html += `<div class="struct">${structText(structKey(best.picks.map(x => x.o)))} · pros run this on ${pct(best.st.share)} of ${esc(state.map)} games</div>`;
   html += `<div class="cards">` + byRole(best.picks).map(({p, o}) => {
     const [cls, txt] = conf(o.wnMap);
@@ -1299,15 +1380,20 @@ function render() {
       <div class="kv"><div><b>${A.n}</b><span>Games</span></div><div><b>${A.wn > 0.05 ? pct(A.won / A.wn) : "–"}</b><span>Win rate</span></div>
         <div><b>${f(A.acs, 0)}</b><span>ACS</span></div><div><b>${f(A.kd, 2)}</b><span>K/D</span></div></div>
       <div class="here">On ${esc(state.map)}: ${o.nMap} game${o.nMap === 1 ? "" : "s"} · WR ${pct(o.wrMap)}${o.pro != null ? ` · pros pick it ${pct(o.pro)}` : ""}</div>
-      <div class="foot"><span class="pill ${cls}">${txt}</span><span class="sc">score ${o.score.toFixed(1)}</span></div>
+      <div class="foot"><span class="pill ${cls}">${txt}</span><span class="psc" title="Player score: 50 is an average player on this agent">${o.score.toFixed(1)}<small>player score</small></span></div>
       ${agentPicker(M, p, o.agent, players, locks)}</div>`;
   }).join("") + `</div>`;
   const cp = closestPro(state.map, best.picks.map(x => x.o.agent));
   if (cp && n === 5) html += `<div class="procomp"><span class="k">Closest pro comp</span><span>${cp.comp.map(esc).join(" · ")}</span><span class="match">${cp.overlap}/5 same · pros ${cp.w}–${cp.n - cp.w}</span></div>`;
-  if (comps.length > 1) {
-    html += `<div><h3>Alternatives</h3><div class="alts">` + comps.slice(1).map(c =>
-      `<div class="alt">${byRole(c.picks).map(({p, o}) => `<span>${icon(o.agent, "ai sm")}<b>${esc(o.agent)}</b> ${esc(short(DATA.players[p]))}</span>`).join("")}<span class="sc">${c.total.toFixed(1)}</span></div>`
-    ).join("") + `</div></div>`;
+  const rows = comps.slice(1).map(c => ({c, label: ""}));
+  if (recommended && Math.abs(recommended.total - best.total) > 0.05) rows.unshift({c: recommended, label: "Recommended, without hand-picks"});
+  if (rows.length) {
+    html += `<div><h3>Compared with</h3><div class="alts">` + rows.map(({c, label}) => {
+      const d = best.total - c.total;
+      return `<div class="alt"><div class="altscore"><span class="anum">${c.total.toFixed(1)}</span>
+          <span class="delta ${d > 0 ? "neg" : "pos"}">${f1(-d)}</span><span class="verdict">${d >= 0 ? verdict(d) : "ahead of yours"}</span></div>
+        <div class="altpicks">${label ? `<span class="altlbl">${esc(label)}</span>` : ""}${byRole(c.picks).map(({p, o}) => `<span>${icon(o.agent, "ai sm")}<b>${esc(o.agent)}</b> ${esc(short(DATA.players[p]))}</span>`).join("")}</div></div>`;
+    }).join("") + `</div></div>`;
   }
   html += `<div><h3>Everyone's best agents on ${esc(state.map)}</h3><div class="scroll"><table><thead><tr><th>Player</th><th>1st</th><th>2nd</th><th>3rd</th><th>4th</th></tr></thead><tbody>` +
     players.map((p, i) => `<tr><td class="pn">${esc(short(DATA.players[p]))}</td>` +
