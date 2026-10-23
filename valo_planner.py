@@ -941,8 +941,12 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .msg{background:var(--card);border:1px dashed var(--line);border-radius:8px;padding:28px 20px;color:var(--mut);text-align:center}
 .warn{color:var(--duel);font-size:13px;margin:0}
 .cards{display:flex;flex-wrap:wrap;justify-content:center;gap:12px}
+.results{container-type:inline-size}
 .cards .card{flex:0 1 calc((100% - 24px) / 3)}
-@media (max-width:640px){.cards .card{flex-basis:100%}}
+@container (max-width:680px){.cards .card{flex-basis:calc((100% - 12px) / 2)}}
+@container (max-width:420px){.cards .card{flex-basis:100%}}
+@supports not (container-type:inline-size){@media (max-width:640px){.cards .card{flex-basis:100%}}}
+.agent{overflow-wrap:anywhere}
 .ch{display:flex;gap:12px;align-items:center;min-width:0}
 .ai{width:60px;height:60px;flex:none;border-radius:8px;background:var(--soft);object-fit:cover}
 .ai.sm{width:22px;height:22px;border-radius:4px;vertical-align:-6px;margin-right:6px;background:none}
