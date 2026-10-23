@@ -1005,7 +1005,7 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .tagline{color:var(--mut);font-weight:400}
 .procomp{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}
 .procomp .k{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
-.plays{display:grid;gap:8px}
+.plays{display:grid;gap:8px;container-type:inline-size}
 .plays .pside{margin:6px 0 0;font:700 18px var(--display);letter-spacing:.04em;text-transform:uppercase}
 .plays .phint{margin:0;font-size:13px;color:var(--mut)}
 .play{background:var(--card);border:1px solid var(--line);border-radius:8px}
@@ -1021,6 +1021,18 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .play ol{margin:0;padding:0 12px 4px 34px;display:grid;gap:6px;font-size:14px}
 .play li b{font-weight:600}
 .play .ab{font:500 11px var(--mono);padding:1px 6px;border-radius:4px;background:var(--soft);border:1px solid var(--line);white-space:nowrap}
+.play .pbody{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:12px;padding:0 12px 4px;align-items:start}
+@container (max-width:620px){.play .pbody{grid-template-columns:1fr}}
+.pmap svg{display:block;width:100%;max-width:420px;aspect-ratio:1;border-radius:8px;background:#1a1d24}
+.pmap .mkey{display:flex;flex-wrap:wrap;gap:4px 10px;font:500 11px var(--mono);color:var(--mut);margin-top:4px}
+.pmap .k{display:inline-block;width:10px;height:10px;margin-right:4px;vertical-align:-1px;border-radius:50%}
+.pmap .k.smoke{background:var(--ctrl);opacity:.7}.pmap .k.flash{background:#ffd84a;border-radius:2px;transform:rotate(45deg)}
+.pmap .k.info{border:2px dashed var(--init)}.pmap .k.trap{background:var(--sent);border-radius:1px;transform:rotate(45deg)}
+.play ol.legend{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:14px}
+.legend li{display:grid;grid-template-columns:auto auto 1fr;gap:8px;align-items:start}
+.legend .nb{width:20px;height:20px;border-radius:50%;color:#fff;font:700 12px/20px var(--body);text-align:center;margin-top:2px}
+.legend .ai.xs{width:24px;height:24px;border-radius:6px}
+.legend .do{font-size:13px;color:var(--mut)}
 .play .miss{color:var(--mut);font-size:12px}
 .play .after{margin:6px 12px 12px;padding:8px 10px;border-left:3px solid var(--accent);background:var(--soft);font-size:13px;border-radius:0 6px 6px 0}
 .procomp .match{font:500 12px var(--mono);color:var(--mut);margin-left:auto}
@@ -1291,16 +1303,63 @@ function playsFor(m, picks) {
   return ((PLAYS.maps || {})[m] || []).map(pl => ({...pl, name: pl.name + (pl.lineup ? " (lineup)" : ""), steps: pl.steps.filter(st => slots[st.slot]).map(st => {
     const {p, o} = slots[st.slot], have = ab[o.agent] || {};
     const k = (st.use || []).find(k => have[k]);
-    return {p, agent: o.agent, ability: k ? have[k] : null, do: st.do, missing: !k && (st.use || []).length ? st.use[0] : null};
+    return {p, agent: o.agent, role: o.role, kind: k || (st.use || [])[0] || null, ability: k ? have[k] : null, do: st.do,
+      missing: !k && (st.use || []).length ? st.use[0] : null, at: st.at || [], pos: st.pos || null, go: st.go || null};
   })}));
 }
+const ROLE_COL = {Controller: "var(--ctrl)", Initiator: "var(--init)", Duelist: "var(--duel)", Sentinel: "var(--sent)"};
+const KIND = {smoke: "smoke", wall: "smoke", flash: "flash", stun: "flash", recon: "info", clear: "info", trip: "trap", slow: "trap", hold: "trap", molly: "molly", entry: "info", buff: "info"};
+let mapSeq = 0;
+// small minimap: util where it lands, arrows for who moves where, agent icon where each player ends up
+function playMap(m, pl) {
+  const G = (PLAYS.geo || {})[m];
+  if (!G || !G.img) return "";
+  const pt = v => Array.isArray(v) ? v : G.spots[v];
+  const route = g => (typeof g === "string" ? G.routes[g] || [] : g || []).map(pt).filter(Boolean);
+  const id = "pm" + (++mapSeq);
+  let under = "", over = "", heads = "";
+  const badge = (x, y, i, col) => `<g transform="translate(${x} ${y})"><circle r=".026" fill="${col}" stroke="#fff" stroke-width=".005"/><text y=".011" text-anchor="middle" font-size=".032" font-weight="700" fill="#fff">${i}</text></g>`;
+  const agentAt = (x, y, s, i) => {
+    const u = ICONS[s.agent] ? `https://media.valorant-api.com/agents/${ICONS[s.agent]}/displayicon.png` : "";
+    const col = ROLE_COL[s.role] || "#999";
+    return `<g><circle cx="${x}" cy="${y}" r=".036" fill="#111" stroke="${col}" stroke-width=".008"/>` +
+      (u ? `<image href="${u}" x="${x - .033}" y="${y - .033}" width=".066" height=".066" clip-path="url(#${id}c${i})"/><clipPath id="${id}c${i}"><circle cx="${x}" cy="${y}" r=".032"/></clipPath>` : "") +
+      badge(x + .034, y - .03, i, col) + `</g>`;
+  };
+  pl.steps.forEach((s, k) => {
+    const i = k + 1, col = ROLE_COL[s.role] || "#999", kind = KIND[s.kind] || "info";
+    const r = route(s.go);
+    if (r.length > 1) {
+      heads += `<marker id="${id}h${i}" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${col}"/></marker>`;
+      under += `<polyline points="${r.map(p => p.join(",")).join(" ")}" fill="none" stroke="#000" stroke-opacity=".5" stroke-width=".016" stroke-linejoin="round" stroke-linecap="round"/>` +
+        `<polyline points="${r.map(p => p.join(",")).join(" ")}" fill="none" stroke="${col}" stroke-width=".009" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#${id}h${i})"/>`;
+    }
+    for (const a of s.at) {
+      const p = pt(a); if (!p) continue;
+      const [x, y] = p;
+      if (kind === "smoke") under += `<circle cx="${x}" cy="${y}" r=".05" fill="${col}" fill-opacity=".55" stroke="#fff" stroke-opacity=".8" stroke-width=".004"/>`;
+      else if (kind === "flash") under += `<polygon points="${[...Array(16)].map((_, j) => { const a2 = j * Math.PI / 8, rr = j % 2 ? .018 : .045; return [x + rr * Math.cos(a2), y + rr * Math.sin(a2)].map(v => v.toFixed(4)).join(","); }).join(" ")}" fill="#ffd84a" stroke="${col}" stroke-width=".005"/>`;
+      else if (kind === "trap") under += `<rect x="${x - .025}" y="${y - .025}" width=".05" height=".05" transform="rotate(45 ${x} ${y})" fill="${col}" fill-opacity=".85" stroke="#fff" stroke-width=".004"/>`;
+      else if (kind === "molly") under += `<circle cx="${x}" cy="${y}" r=".035" fill="#ff7a1a" fill-opacity=".7" stroke="#fff" stroke-width=".004"/>`;
+      else under += `<circle cx="${x}" cy="${y}" r=".04" fill="none" stroke="${col}" stroke-width=".008" stroke-dasharray=".012 .008"/><circle cx="${x}" cy="${y}" r=".01" fill="${col}"/>`;
+      over += badge(x + .03, y - .03, i, col);
+    }
+    const end = s.pos ? pt(s.pos) : r.length ? r[r.length - 1] : null;
+    if (end) over += agentAt(end[0], end[1], s, i);
+  });
+  return `<div class="pmap"><svg viewBox="0 0 1 1" role="img" aria-label="${esc(pl.name)} on ${esc(m)}"><defs>${heads}</defs>
+    <rect width="1" height="1" fill="#1a1d24"/><image href="${G.img}" width="1" height="1" opacity=".9"/>${under}${over}</svg>
+    <div class="mkey"><span><i class="k smoke"></i>smoke</span><span><i class="k flash"></i>flash / stun</span><span><i class="k info"></i>info</span><span><i class="k trap"></i>trap</span><span>→ move</span></div></div>`;
+}
+
 function playsHtml(m, picks) {
   const list = playsFor(m, picks);
   if (!list.length) return "";
-  const one = pl => `<details class="play"><summary><span class="side ${esc(pl.side)}">${esc(pl.side)}</span><span class="call">${esc(pl.call)}</span>
+  const one = pl => `<details class="play" data-map="${esc(m)}"><summary><span class="side ${esc(pl.side)}">${esc(pl.side)}</span><span class="call">${esc(pl.call)}</span>
       <span class="pname">${esc(pl.name)}</span><span class="idea">${esc(pl.idea)}</span></summary>
-      <ol>${pl.steps.map(s => `<li><b>${esc(short(DATA.players[s.p]))}</b> (${esc(s.agent)}): ${esc(s.do)}
-        ${s.ability ? `<span class="ab">${esc(s.ability)}</span>` : ""}${s.missing ? `<span class="miss"> no ${esc(s.missing)} on ${esc(s.agent)}: skip it or improvise</span>` : ""}</li>`).join("")}</ol>
+      <div class="pbody">${playMap(m, pl)}
+      <ol class="legend">${pl.steps.map((s, i) => `<li><span class="nb" style="background:${ROLE_COL[s.role] || "var(--mut)"}">${i + 1}</span>${icon(s.agent, "ai xs")}
+        <div><b>${esc(short(DATA.players[s.p]))}</b>${s.ability ? ` <span class="ab">${esc(s.ability)}</span>` : ""}<div class="do">${esc(s.do)}${s.missing ? ` <span class="miss">(no ${esc(s.missing)} on ${esc(s.agent)})</span>` : ""}</div></div></li>`).join("")}</ol></div>
       ${pl.after ? `<div class="after"><b>After:</b> ${esc(pl.after)}</div>` : ""}</details>`;
   const side = k => { const xs = list.filter(pl => pl.side === k); return xs.length ? `<h4 class="pside">${k}</h4>` + xs.map(one).join("") : ""; };
   return `<div><h3>Plays for this comp</h3><div class="plays"><p class="phint">Tap one to open it. Shout the call word and everyone knows their job. No lineups needed: all util is thrown freehand.</p>` +

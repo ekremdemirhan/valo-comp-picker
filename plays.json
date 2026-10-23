@@ -1,5 +1,5 @@
 {
- "_note": "Simple set plays per map, 5 attack and 5 defense. None needs a lineup: all util is thrown freehand. If you add a play that needs a lineup, set \"lineup\": true and the page adds (lineup) to its name. Each step names a job (slot) and the kinds of utility it wants; the page fills in who does it and the ability for their agent. Slots: controller, initiator, duelist, sentinel, fifth (whoever is left over). Change callouts to the ones your squad uses.",
+ "_note": "Simple set plays per map, 5 attack and 5 defense. None needs a lineup: all util is thrown freehand. If you add a play that needs a lineup, set \"lineup\": true and the page adds (lineup) to its name. Each step names a job (slot) and the kinds of utility it wants; the page fills in who does it and the ability for their agent. Slots: controller, initiator, duelist, sentinel, fifth (whoever is left over). Change callouts to the ones your squad uses. Map positions: each step can have 'at' (where the util lands), 'pos' (where the player stands) and 'go' (a route name or a list of spots). Spots are callouts from valorant-api.com plus a few extra, in 0-1 minimap coordinates.",
  "abilities": {
   "Brimstone": {
    "smoke": "Sky Smoke",
@@ -153,7 +153,11 @@
       "use": [
        "smoke"
       ],
-      "do": "smoke Heaven and A Link (CT) as Long and Short go"
+      "do": "smoke Heaven and A Link (CT) as Long and Short go",
+      "at": [
+       "Heaven",
+       "A Link"
+      ]
      },
      {
       "slot": "initiator",
@@ -163,7 +167,11 @@
        "flash",
        "stun"
       ],
-      "do": "util onto A site from Long, call what you see"
+      "do": "util onto A site from Long, call what you see",
+      "at": [
+       "A Default"
+      ],
+      "go": "aLong"
      },
      {
       "slot": "duelist",
@@ -171,7 +179,8 @@
        "entry",
        "flash"
       ],
-      "do": "first in through Long, clear Hell and default"
+      "do": "first in through Long, clear Hell and default",
+      "go": "aLong"
      },
      {
       "slot": "fifth",
@@ -181,7 +190,8 @@
        "entry",
        "clear"
       ],
-      "do": "come through Short (Sewer) on the same call, check Hell"
+      "do": "come through Short (Sewer) on the same call, check Hell",
+      "go": "aShort"
      },
      {
       "slot": "sentinel",
@@ -189,7 +199,10 @@
        "trip",
        "slow"
       ],
-      "do": "trap A Lobby behind you for the flank, then join for the post-plant"
+      "do": "trap A Lobby behind you for the flank, then join",
+      "at": [
+       "A Lobby"
+      ]
      }
     ],
     "after": "Plant default. Post-plant from Long and Short, one player watching A Link."
@@ -205,7 +218,11 @@
       "use": [
        "smoke"
       ],
-      "do": "smoke C Link (CT) and the Garage door"
+      "do": "smoke C Link (CT) and the Garage door",
+      "at": [
+       "C Link",
+       "C Window"
+      ]
      },
      {
       "slot": "initiator",
@@ -215,7 +232,11 @@
        "flash",
        "stun"
       ],
-      "do": "clear Logs and the C site corners from C Long"
+      "do": "clear Logs and the C site corners from C Long",
+      "at": [
+       "C Default"
+      ],
+      "go": "cLong"
      },
      {
       "slot": "duelist",
@@ -223,7 +244,8 @@
        "entry",
        "flash"
       ],
-      "do": "first in, take Logs"
+      "do": "first in, take Logs",
+      "go": "cLong"
      },
      {
       "slot": "fifth",
@@ -233,7 +255,8 @@
        "entry",
        "clear"
       ],
-      "do": "trade the duelist, clear Cubby and back site"
+      "do": "trade the duelist, clear back site",
+      "go": "cLong"
      },
      {
       "slot": "sentinel",
@@ -241,7 +264,11 @@
        "trip",
        "slow"
       ],
-      "do": "hold Garage from the mid side so nobody walks out behind you"
+      "do": "hold Garage from the mid side so nobody walks out behind you",
+      "pos": "Mid Doors",
+      "at": [
+       "C Garage"
+      ]
      }
     ],
     "after": "Plant safe behind the box. Hold from Logs, Long and Garage; keep one util for the defuse."
@@ -257,7 +284,11 @@
       "use": [
        "smoke"
       ],
-      "do": "smoke B back (CT side) and the Garage door"
+      "do": "smoke B back (CT side) and the Garage door",
+      "at": [
+       "B Back",
+       "C Window"
+      ]
      },
      {
       "slot": "initiator",
@@ -267,7 +298,10 @@
        "flash",
        "stun"
       ],
-      "do": "util through Mid Window onto B site"
+      "do": "util through Mid Window onto B site",
+      "at": [
+       "B Default"
+      ]
      },
      {
       "slot": "duelist",
@@ -275,7 +309,8 @@
        "entry",
        "flash"
       ],
-      "do": "first in from Courtyard"
+      "do": "first in from Courtyard",
+      "go": "bMid"
      },
      {
       "slot": "fifth",
@@ -285,7 +320,8 @@
        "entry",
        "clear"
       ],
-      "do": "trade the duelist through the Window"
+      "do": "trade the duelist through the Window",
+      "go": "bMid"
      },
      {
       "slot": "sentinel",
@@ -293,7 +329,10 @@
        "trip",
        "slow"
       ],
-      "do": "trap Courtyard behind you"
+      "do": "trap Courtyard behind you",
+      "at": [
+       "Mid Courtyard"
+      ]
      }
     ],
     "after": "B is small: plant fast, then hold from Courtyard and Window and watch both Links."
@@ -312,7 +351,10 @@
        "entry",
        "clear"
       ],
-      "do": "use one piece of util at A Long to sell it, then rotate to C"
+      "do": "use one piece of util at A Long to sell it, then rotate to C",
+      "at": [
+       "A Long"
+      ]
      },
      {
       "slot": "fifth",
@@ -322,14 +364,19 @@
        "entry",
        "clear"
       ],
-      "do": "make noise at A Short (Sewer) for 10 seconds, then rotate"
+      "do": "make noise at A Short (Sewer) for 10 seconds, then rotate",
+      "pos": "A Sewer"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "save smokes for C: C Link and the Garage door"
+      "do": "save smokes for C: C Link and the Garage door",
+      "at": [
+       "C Link",
+       "C Window"
+      ]
      },
      {
       "slot": "duelist",
@@ -337,7 +384,8 @@
        "entry",
        "flash"
       ],
-      "do": "wait at C Long, first in when smokes land"
+      "do": "wait at C Long, first in when smokes land",
+      "go": "cLong"
      },
      {
       "slot": "sentinel",
@@ -345,7 +393,8 @@
        "trip",
        "slow"
       ],
-      "do": "lurk A Lobby and call any rotations"
+      "do": "lurk A Lobby and call any rotations",
+      "pos": "A Lobby"
      }
     ],
     "after": "Only worth it if the fake pulled their util. If A looked empty, take A instead."
@@ -354,7 +403,7 @@
     "name": "Garage take, late C",
     "side": "Attack",
     "call": "GARAGE",
-    "idea": "Slow round: take mid Courtyard and Garage first, then pinch C from Garage and Long.",
+    "idea": "Slow round: take Garage first, then pinch C from Garage and Long.",
     "steps": [
      {
       "slot": "initiator",
@@ -364,7 +413,10 @@
        "flash",
        "stun"
       ],
-      "do": "util on the Garage window, then take Courtyard"
+      "do": "util on the Garage window, then take Courtyard",
+      "at": [
+       "C Window"
+      ]
      },
      {
       "slot": "duelist",
@@ -372,14 +424,18 @@
        "entry",
        "flash"
       ],
-      "do": "take Garage right after the initiator's util"
+      "do": "take Garage right after the initiator's util",
+      "go": "garage"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "keep smokes for C Link (CT) on the hit"
+      "do": "keep smokes for C Link (CT) on the hit",
+      "at": [
+       "C Link"
+      ]
      },
      {
       "slot": "fifth",
@@ -389,7 +445,8 @@
        "entry",
        "clear"
       ],
-      "do": "show A Long early, then rotate to C Long"
+      "do": "show A Long early, then rotate to C Long",
+      "pos": "A Long"
      },
      {
       "slot": "sentinel",
@@ -397,10 +454,11 @@
        "trip",
        "slow"
       ],
-      "do": "lurk C Long, wait for the Garage call"
+      "do": "lurk C Long, wait for the Garage call",
+      "pos": "C Long"
      }
     ],
-    "after": "Hit C with about 45 seconds left; if A players rotate through Link, punish it from Garage."
+    "after": "Hit C with about 45 seconds left from Garage and Long."
    },
    {
     "name": "2-1-2 default",
@@ -415,7 +473,11 @@
        "slow",
        "hold"
       ],
-      "do": "anchor C, trap C Long"
+      "do": "anchor C, trap C Long",
+      "pos": "C Default",
+      "at": [
+       "C Long"
+      ]
      },
      {
       "slot": "fifth",
@@ -425,14 +487,16 @@
        "molly",
        "slow"
       ],
-      "do": "C: hold Garage / C Link with the anchor"
+      "do": "C: hold Garage / C Link with the anchor",
+      "pos": "C Link"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "B / mid so smokes reach A and C"
+      "do": "B / mid so smokes reach A and C",
+      "pos": "B Default"
      },
      {
       "slot": "initiator",
@@ -442,7 +506,11 @@
        "flash",
        "stun"
       ],
-      "do": "A Long: info early, then fall back to Heaven"
+      "do": "A Long: info early, then fall back to Heaven",
+      "pos": "Heaven",
+      "at": [
+       "A Long"
+      ]
      },
      {
       "slot": "duelist",
@@ -450,7 +518,8 @@
        "entry",
        "flash"
       ],
-      "do": "A Short (Sewer)"
+      "do": "A Short (Sewer)",
+      "pos": "Hell"
      }
     ],
     "after": "Retake: smoke their entry (Long or Garage) and flash in from two sides together."
@@ -469,7 +538,11 @@
        "flash",
        "stun"
       ],
-      "do": "util into mid Courtyard / Garage window"
+      "do": "util into mid Courtyard / Garage",
+      "at": [
+       "Mid Doors"
+      ],
+      "pos": "C Window"
      },
      {
       "slot": "duelist",
@@ -477,7 +550,12 @@
        "entry",
        "flash"
       ],
-      "do": "push Garage with the initiator, take one fight, fall back"
+      "do": "push Garage with the initiator, one fight, fall back",
+      "go": [
+       "C Link",
+       "C Window",
+       "C Garage"
+      ]
      },
      {
       "slot": "fifth",
@@ -487,14 +565,19 @@
        "molly",
        "slow"
       ],
-      "do": "anchor A alone"
+      "do": "anchor A alone",
+      "pos": "A Default"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke the Garage window so they can fall back"
+      "do": "smoke the Garage window so they can fall back",
+      "pos": "B Default",
+      "at": [
+       "C Garage"
+      ]
      },
      {
       "slot": "sentinel",
@@ -503,7 +586,8 @@
        "slow",
        "hold"
       ],
-      "do": "anchor C alone"
+      "do": "anchor C alone",
+      "pos": "C Default"
      }
     ],
     "after": "One fight, then back. Don't die in Garage."
@@ -522,7 +606,11 @@
        "flash",
        "stun"
       ],
-      "do": "util down A Long"
+      "do": "util down A Long",
+      "pos": "A Default",
+      "at": [
+       "A Long"
+      ]
      },
      {
       "slot": "duelist",
@@ -530,7 +618,15 @@
        "entry",
        "flash"
       ],
-      "do": "swing A Long right after the util"
+      "do": "swing A Long right after the util",
+      "go": [
+       "A Default",
+       [
+        0.5,
+        0.15
+       ],
+       "A Long"
+      ]
      },
      {
       "slot": "fifth",
@@ -540,14 +636,22 @@
        "molly",
        "slow"
       ],
-      "do": "trade from A Long, then fall back"
+      "do": "trade from A Long, then fall back",
+      "pos": [
+       0.52,
+       0.15
+      ]
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke A Long for the fall back"
+      "do": "smoke A Long for the fall back",
+      "pos": "B Default",
+      "at": [
+       "A Long"
+      ]
      },
      {
       "slot": "sentinel",
@@ -556,10 +660,11 @@
        "slow",
        "hold"
       ],
-      "do": "anchor C alone"
+      "do": "anchor C alone",
+      "pos": "C Default"
      }
     ],
-    "after": "If you get a kill, play it safe: they're one down, don't chase."
+    "after": "If you get a kill, play it safe: don't chase."
    },
    {
     "name": "C stack",
@@ -574,7 +679,11 @@
        "slow",
        "hold"
       ],
-      "do": "C site, trap C Long"
+      "do": "C site, trap C Long",
+      "pos": "C Default",
+      "at": [
+       "C Long"
+      ]
      },
      {
       "slot": "fifth",
@@ -584,14 +693,16 @@
        "molly",
        "slow"
       ],
-      "do": "Garage"
+      "do": "Garage",
+      "pos": "C Window"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "B, ready to rotate to C"
+      "do": "B, ready to rotate to C",
+      "pos": "B Default"
      },
      {
       "slot": "initiator",
@@ -601,7 +712,8 @@
        "flash",
        "stun"
       ],
-      "do": "A alone: info, fall back and call"
+      "do": "A alone: info, fall back and call",
+      "pos": "A Default"
      },
      {
       "slot": "duelist",
@@ -609,10 +721,11 @@
        "entry",
        "flash"
       ],
-      "do": "C Long / Logs"
+      "do": "C Long / Logs",
+      "pos": "Logs"
      }
     ],
-    "after": "A gamble. A player alone on A: don't fight, just call and slow them down."
+    "after": "A gamble. The A player doesn't fight, just calls and slows."
    },
    {
     "name": "Give A, retake",
@@ -627,7 +740,8 @@
        "slow",
        "hold"
       ],
-      "do": "anchor C"
+      "do": "anchor C",
+      "pos": "C Default"
      },
      {
       "slot": "fifth",
@@ -637,14 +751,27 @@
        "molly",
        "slow"
       ],
-      "do": "Heaven side on the retake"
+      "do": "Heaven side on the retake",
+      "go": [
+       "A Link",
+       [
+        0.3,
+        0.2
+       ],
+       "Heaven"
+      ]
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "B; smoke Long and Short exits for the retake"
+      "do": "B; smoke Long and Short exits for the retake",
+      "pos": "B Default",
+      "at": [
+       "A Long",
+       "Short Exit"
+      ]
      },
      {
       "slot": "initiator",
@@ -654,7 +781,8 @@
        "flash",
        "stun"
       ],
-      "do": "A: info only, fall back to A Link when they come"
+      "do": "A: info only, fall back to A Link when they come",
+      "pos": "A Link"
      },
      {
       "slot": "duelist",
@@ -662,7 +790,15 @@
        "entry",
        "flash"
       ],
-      "do": "A Link: first in on the retake"
+      "do": "A Link: first in on the retake",
+      "go": [
+       "A Link",
+       [
+        0.38,
+        0.24
+       ],
+       "A Default"
+      ]
      }
     ],
     "after": "Retake together through A Link and Heaven; flash in at the same time."
@@ -680,7 +816,11 @@
       "use": [
        "smoke"
       ],
-      "do": "smoke Heaven and U-Hall / CT"
+      "do": "smoke Heaven and U-Hall / CT",
+      "at": [
+       "Heaven",
+       "U-Hall"
+      ]
      },
      {
       "slot": "initiator",
@@ -690,7 +830,11 @@
        "flash",
        "stun"
       ],
-      "do": "util out of Showers, check Truck"
+      "do": "util out of Showers, check Truck",
+      "at": [
+       "Truck"
+      ],
+      "go": "showers"
      },
      {
       "slot": "duelist",
@@ -698,7 +842,8 @@
        "entry",
        "flash"
       ],
-      "do": "first out of Showers, take Truck / default"
+      "do": "first out of Showers, take Truck / default",
+      "go": "showers"
      },
      {
       "slot": "fifth",
@@ -708,7 +853,8 @@
        "entry",
        "clear"
       ],
-      "do": "come from A Short (Lamps) on the same call"
+      "do": "come from A Short (Lamps) on the same call",
+      "go": "lamps"
      },
      {
       "slot": "sentinel",
@@ -716,7 +862,10 @@
        "trip",
        "slow"
       ],
-      "do": "trap A Lobby / the teleporter for flanks, then join"
+      "do": "trap A Lobby / the teleporter for flanks, then join",
+      "at": [
+       "A Lobby"
+      ]
      }
     ],
     "after": "Plant default or behind Truck; play off Lamps, Showers and the site."
@@ -732,7 +881,11 @@
       "use": [
        "smoke"
       ],
-      "do": "smoke B Elbow and CT (Hall)"
+      "do": "smoke B Elbow and CT (Hall)",
+      "at": [
+       "B Elbow",
+       "B Hall"
+      ]
      },
      {
       "slot": "initiator",
@@ -742,7 +895,11 @@
        "flash",
        "stun"
       ],
-      "do": "clear Hookah, then the site from Long"
+      "do": "clear Hookah, then the site",
+      "at": [
+       "B Default"
+      ],
+      "go": "hookah"
      },
      {
       "slot": "duelist",
@@ -750,7 +907,8 @@
        "entry",
        "flash"
       ],
-      "do": "first out of Hookah"
+      "do": "first out of Hookah",
+      "go": "hookah"
      },
      {
       "slot": "fifth",
@@ -760,7 +918,8 @@
        "entry",
        "clear"
       ],
-      "do": "come down B Long with the duelist"
+      "do": "come down B Long with the duelist",
+      "go": "bLong"
      },
      {
       "slot": "sentinel",
@@ -768,7 +927,8 @@
        "trip",
        "slow"
       ],
-      "do": "watch B Long / Garden flank, then post-plant Long"
+      "do": "watch B Long / Garden flank, then post-plant Long",
+      "pos": "B Long"
      }
     ],
     "after": "Plant default; hold from Hookah, Long and Garden."
@@ -787,7 +947,11 @@
        "entry",
        "clear"
       ],
-      "do": "throw util into Showers / Lamps to sell the fake"
+      "do": "throw util into Showers / Lamps to sell the fake",
+      "at": [
+       "A Bath",
+       "A Lamps"
+      ]
      },
      {
       "slot": "fifth",
@@ -797,14 +961,19 @@
        "entry",
        "clear"
       ],
-      "do": "stay at A making noise for 5 seconds, then follow"
+      "do": "stay at A making noise for 5 seconds, then follow",
+      "pos": "A Short"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "save smokes for B: Elbow and CT"
+      "do": "save smokes for B: Elbow and CT",
+      "at": [
+       "B Elbow",
+       "B Hall"
+      ]
      },
      {
       "slot": "duelist",
@@ -812,7 +981,17 @@
        "entry",
        "flash"
       ],
-      "do": "teleport first and lead the B hit"
+      "do": "teleport first and lead the B hit",
+      "go": [
+       "B Exit",
+       "B Short",
+       "Hookah",
+       "B Window",
+       [
+        0.3,
+        0.36
+       ]
+      ]
      },
      {
       "slot": "sentinel",
@@ -820,7 +999,8 @@
        "trip",
        "slow"
       ],
-      "do": "lurk B Long the whole time, call rotations"
+      "do": "lurk B Long the whole time, call rotations",
+      "pos": "B Long"
      }
     ],
     "after": "Only works if the fake costs them util. If A was wide open, take A."
@@ -836,7 +1016,11 @@
       "use": [
        "smoke"
       ],
-      "do": "smoke Heaven and U-Hall"
+      "do": "smoke Heaven and U-Hall",
+      "at": [
+       "Heaven",
+       "U-Hall"
+      ]
      },
      {
       "slot": "initiator",
@@ -846,7 +1030,10 @@
        "flash",
        "stun"
       ],
-      "do": "util onto A site from Lamps"
+      "do": "util onto A site from Lamps",
+      "at": [
+       "A Default"
+      ]
      },
      {
       "slot": "duelist",
@@ -854,7 +1041,8 @@
        "entry",
        "flash"
       ],
-      "do": "first through Lamps"
+      "do": "first through Lamps",
+      "go": "lamps"
      },
      {
       "slot": "fifth",
@@ -864,7 +1052,8 @@
        "entry",
        "clear"
       ],
-      "do": "trade the duelist"
+      "do": "trade the duelist",
+      "go": "lamps"
      },
      {
       "slot": "sentinel",
@@ -872,7 +1061,10 @@
        "trip",
        "slow"
       ],
-      "do": "plant, then watch Showers"
+      "do": "plant, then watch Showers",
+      "at": [
+       "A Bath"
+      ]
      }
     ],
     "after": "Speed is the point. Don't wait for the perfect util."
@@ -891,7 +1083,10 @@
        "flash",
        "stun"
       ],
-      "do": "info on Hookah early"
+      "do": "info on Hookah early",
+      "at": [
+       "Hookah"
+      ]
      },
      {
       "slot": "duelist",
@@ -899,14 +1094,27 @@
        "entry",
        "flash"
       ],
-      "do": "take Hookah control"
+      "do": "take Hookah control",
+      "go": [
+       "Attacker Side Spawn",
+       [
+        0.5,
+        0.7
+       ],
+       "B Link",
+       "B Short"
+      ]
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "save smokes for Elbow and CT"
+      "do": "save smokes for Elbow and CT",
+      "at": [
+       "B Elbow",
+       "B Hall"
+      ]
      },
      {
       "slot": "fifth",
@@ -916,7 +1124,8 @@
        "entry",
        "clear"
       ],
-      "do": "show A Showers"
+      "do": "show A Showers",
+      "pos": "A Lobby"
      },
      {
       "slot": "sentinel",
@@ -924,7 +1133,8 @@
        "trip",
        "slow"
       ],
-      "do": "hold B Long"
+      "do": "hold B Long",
+      "pos": "B Long"
      }
     ],
     "after": "Hit B at about 40 seconds left from Hookah and Long, or punish A if they over-rotated."
@@ -942,7 +1152,11 @@
        "slow",
        "hold"
       ],
-      "do": "anchor B, trap B Long"
+      "do": "anchor B, trap B Long",
+      "pos": "B Default",
+      "at": [
+       "B Long"
+      ]
      },
      {
       "slot": "fifth",
@@ -952,14 +1166,16 @@
        "molly",
        "slow"
       ],
-      "do": "Hookah: info, fall back early"
+      "do": "Hookah: info, fall back early",
+      "pos": "Hookah"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "U-Hall / CT so smokes reach either site"
+      "do": "U-Hall / CT so smokes reach either site",
+      "pos": "U-Hall"
      },
      {
       "slot": "initiator",
@@ -969,7 +1185,11 @@
        "flash",
        "stun"
       ],
-      "do": "A: info on Showers"
+      "do": "A: info on Showers",
+      "pos": "Truck",
+      "at": [
+       "A Bath"
+      ]
      },
      {
       "slot": "duelist",
@@ -977,7 +1197,8 @@
        "entry",
        "flash"
       ],
-      "do": "A Short (Lamps)"
+      "do": "A Short (Lamps)",
+      "pos": "A Lamps"
      }
     ],
     "after": "Retake through CT / U-Hall and the other entry; flash in together."
@@ -996,7 +1217,11 @@
        "flash",
        "stun"
       ],
-      "do": "util into Hookah"
+      "do": "util into Hookah",
+      "pos": "B Default",
+      "at": [
+       "B Short"
+      ]
      },
      {
       "slot": "duelist",
@@ -1004,7 +1229,12 @@
        "entry",
        "flash"
       ],
-      "do": "push Hookah with the initiator, one fight, fall back"
+      "do": "push Hookah, one fight, fall back",
+      "go": [
+       "B Default",
+       "B Window",
+       "Hookah"
+      ]
      },
      {
       "slot": "fifth",
@@ -1014,14 +1244,19 @@
        "molly",
        "slow"
       ],
-      "do": "trade from B site"
+      "do": "trade from B site",
+      "pos": "B Garden"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke the Hookah exit so you can fall back"
+      "do": "smoke the Hookah exit so you can fall back",
+      "pos": "U-Hall",
+      "at": [
+       "B Short"
+      ]
      },
      {
       "slot": "sentinel",
@@ -1030,10 +1265,11 @@
        "slow",
        "hold"
       ],
-      "do": "anchor A alone"
+      "do": "anchor A alone",
+      "pos": "A Default"
      }
     ],
-    "after": "One fight, then back. If they're five in Hookah, call it and fall back."
+    "after": "One fight, then back. If they're five in Hookah, call it."
    },
    {
     "name": "Showers push",
@@ -1049,7 +1285,11 @@
        "flash",
        "stun"
       ],
-      "do": "util into Showers"
+      "do": "util into Showers",
+      "pos": "A Default",
+      "at": [
+       "A Bath"
+      ]
      },
      {
       "slot": "duelist",
@@ -1057,7 +1297,11 @@
        "entry",
        "flash"
       ],
-      "do": "push Showers, one fight, fall back"
+      "do": "push Showers, one fight, fall back",
+      "go": [
+       "A Default",
+       "A Bath"
+      ]
      },
      {
       "slot": "fifth",
@@ -1067,14 +1311,19 @@
        "molly",
        "slow"
       ],
-      "do": "trade from A site"
+      "do": "trade from A site",
+      "pos": "Truck"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke the Showers exit for the fall back"
+      "do": "smoke the Showers exit for the fall back",
+      "pos": "U-Hall",
+      "at": [
+       "A Lobby"
+      ]
      },
      {
       "slot": "sentinel",
@@ -1083,7 +1332,8 @@
        "slow",
        "hold"
       ],
-      "do": "anchor B alone"
+      "do": "anchor B alone",
+      "pos": "B Default"
      }
     ],
     "after": "One fight, then back to site."
@@ -1101,7 +1351,11 @@
        "slow",
        "hold"
       ],
-      "do": "A site, trap Showers"
+      "do": "A site, trap Showers",
+      "pos": "A Default",
+      "at": [
+       "A Bath"
+      ]
      },
      {
       "slot": "fifth",
@@ -1111,14 +1365,16 @@
        "molly",
        "slow"
       ],
-      "do": "B alone: info, fall back and call"
+      "do": "B alone: info, fall back and call",
+      "pos": "B Default"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "U-Hall, ready to smoke A"
+      "do": "U-Hall, ready to smoke A",
+      "pos": "U-Hall"
      },
      {
       "slot": "initiator",
@@ -1128,7 +1384,8 @@
        "flash",
        "stun"
       ],
-      "do": "A site"
+      "do": "A site",
+      "pos": "Truck"
      },
      {
       "slot": "duelist",
@@ -1136,7 +1393,8 @@
        "entry",
        "flash"
       ],
-      "do": "A Short (Lamps)"
+      "do": "A Short (Lamps)",
+      "pos": "A Lamps"
      }
     ],
     "after": "A gamble. The B player doesn't fight, just calls and slows."
@@ -1154,7 +1412,8 @@
        "slow",
        "hold"
       ],
-      "do": "anchor A"
+      "do": "anchor A",
+      "pos": "A Default"
      },
      {
       "slot": "fifth",
@@ -1164,14 +1423,23 @@
        "molly",
        "slow"
       ],
-      "do": "Garden side on the retake"
+      "do": "Garden side on the retake",
+      "go": [
+       "B Elbow",
+       "B Garden"
+      ]
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke Elbow and Hookah exit for the retake"
+      "do": "smoke Elbow and Hookah exit for the retake",
+      "pos": "U-Hall",
+      "at": [
+       "B Window",
+       "B Long"
+      ]
      },
      {
       "slot": "initiator",
@@ -1181,7 +1449,8 @@
        "flash",
        "stun"
       ],
-      "do": "B: info only, fall back to CT when they come"
+      "do": "B: info only, fall back to CT when they come",
+      "pos": "B Hall"
      },
      {
       "slot": "duelist",
@@ -1189,7 +1458,11 @@
        "entry",
        "flash"
       ],
-      "do": "CT: first in on the retake"
+      "do": "CT: first in on the retake",
+      "go": [
+       "B Hall",
+       "B Default"
+      ]
      }
     ],
     "after": "Retake together from CT and Garden; flash in at the same time."
@@ -1207,7 +1480,11 @@
       "use": [
        "smoke"
       ],
-      "do": "smoke Tree and A Top (Stairs)"
+      "do": "smoke Tree and A Top (Stairs)",
+      "at": [
+       "Tree",
+       "A Stairs"
+      ]
      },
      {
       "slot": "initiator",
@@ -1217,7 +1494,11 @@
        "flash",
        "stun"
       ],
-      "do": "clear A site / Hut from A Main"
+      "do": "clear A site / Hut from A Main",
+      "at": [
+       "A Hut"
+      ],
+      "go": "aMain"
      },
      {
       "slot": "duelist",
@@ -1225,7 +1506,8 @@
        "entry",
        "flash"
       ],
-      "do": "first in, take site / Hut"
+      "do": "first in, take site / Hut",
+      "go": "aMain"
      },
      {
       "slot": "fifth",
@@ -1235,7 +1517,16 @@
        "entry",
        "clear"
       ],
-      "do": "trade the duelist, check Rubble"
+      "do": "trade the duelist, check Rubble",
+      "go": [
+       "Attacker Side Spawn",
+       "A Lobby",
+       "A Rubble",
+       [
+        0.84,
+        0.42
+       ]
+      ]
      },
      {
       "slot": "sentinel",
@@ -1243,7 +1534,10 @@
        "trip",
        "slow"
       ],
-      "do": "watch A Link / the rotating door for flanks"
+      "do": "watch A Link / the rotating door for flanks",
+      "at": [
+       "A Link"
+      ]
      }
     ],
     "after": "Plant default; hold Tree, Rubble and Main."
@@ -1259,7 +1553,11 @@
       "use": [
        "smoke"
       ],
-      "do": "smoke C Hall and Waterfall"
+      "do": "smoke C Hall and Waterfall",
+      "at": [
+       "C Hall",
+       "Waterfall"
+      ]
      },
      {
       "slot": "initiator",
@@ -1269,7 +1567,11 @@
        "flash",
        "stun"
       ],
-      "do": "clear Mound and the site from C Main"
+      "do": "clear the site from C Main",
+      "at": [
+       "C Site"
+      ],
+      "go": "cMain"
      },
      {
       "slot": "duelist",
@@ -1277,7 +1579,8 @@
        "entry",
        "flash"
       ],
-      "do": "first in, take Mound"
+      "do": "first in, take the site",
+      "go": "cMain"
      },
      {
       "slot": "fifth",
@@ -1287,7 +1590,14 @@
        "entry",
        "clear"
       ],
-      "do": "trade the duelist, clear Bend"
+      "do": "trade the duelist, clear Bend",
+      "go": [
+       "Attacker Side Spawn",
+       "C Lobby",
+       "C Mound",
+       "C Main",
+       "C Bend"
+      ]
      },
      {
       "slot": "sentinel",
@@ -1295,7 +1605,10 @@
        "trip",
        "slow"
       ],
-      "do": "trap C Main behind you"
+      "do": "trap C Main behind you",
+      "at": [
+       "C Mound"
+      ]
      }
     ],
     "after": "Plant default; hold from Mound, Main and Bend."
@@ -1311,7 +1624,10 @@
       "use": [
        "smoke"
       ],
-      "do": "smoke the back of B (Upper / CT side)"
+      "do": "smoke the back of B (Upper / CT side)",
+      "at": [
+       "B Upper"
+      ]
      },
      {
       "slot": "initiator",
@@ -1321,7 +1637,10 @@
        "flash",
        "stun"
       ],
-      "do": "util onto B site as you go"
+      "do": "util onto B site as you go",
+      "at": [
+       "B Site"
+      ]
      },
      {
       "slot": "duelist",
@@ -1329,7 +1648,8 @@
        "entry",
        "flash"
       ],
-      "do": "first through B Main (Pillars)"
+      "do": "first through B Main (Pillars)",
+      "go": "bMain"
      },
      {
       "slot": "fifth",
@@ -1339,7 +1659,8 @@
        "entry",
        "clear"
       ],
-      "do": "trade the duelist"
+      "do": "trade the duelist",
+      "go": "bMain"
      },
      {
       "slot": "sentinel",
@@ -1347,7 +1668,8 @@
        "trip",
        "slow"
       ],
-      "do": "plant, then hold from Pillars"
+      "do": "plant, then hold from Pillars",
+      "pos": "B Main"
      }
     ],
     "after": "If B is stacked, rotate through the rotating doors."
@@ -1366,7 +1688,10 @@
        "entry",
        "clear"
       ],
-      "do": "util into C Main to sell it, then rotate to A"
+      "do": "util into C Main to sell it, then rotate to A",
+      "at": [
+       "C Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -1376,14 +1701,19 @@
        "entry",
        "clear"
       ],
-      "do": "make noise at C for 10 seconds, then rotate"
+      "do": "make noise at C for 10 seconds, then rotate",
+      "pos": "C Mound"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "save smokes for A: Tree and A Top"
+      "do": "save smokes for A: Tree and A Top",
+      "at": [
+       "Tree",
+       "A Stairs"
+      ]
      },
      {
       "slot": "duelist",
@@ -1391,7 +1721,8 @@
        "entry",
        "flash"
       ],
-      "do": "wait at A Main, first in when smokes land"
+      "do": "wait at A Main, first in when smokes land",
+      "go": "aMain"
      },
      {
       "slot": "sentinel",
@@ -1399,7 +1730,8 @@
        "trip",
        "slow"
       ],
-      "do": "lurk C Main, call rotations"
+      "do": "lurk C Main, call rotations",
+      "pos": "C Mound"
      }
     ],
     "after": "Only worth it if the fake pulled their util."
@@ -1418,7 +1750,10 @@
        "flash",
        "stun"
       ],
-      "do": "info on A Main early"
+      "do": "info on A Main early",
+      "at": [
+       "A Main"
+      ]
      },
      {
       "slot": "duelist",
@@ -1426,14 +1761,20 @@
        "entry",
        "flash"
       ],
-      "do": "take B Main / Pillars control"
+      "do": "take B Main / Pillars control",
+      "go": [
+       "Attacker Side Spawn",
+       "B Pillars",
+       "B Main"
+      ]
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "keep smokes for the site the IGL picks"
+      "do": "keep smokes for the site the IGL picks",
+      "pos": "B Pillars"
      },
      {
       "slot": "fifth",
@@ -1443,7 +1784,8 @@
        "entry",
        "clear"
       ],
-      "do": "show C Main"
+      "do": "show C Main",
+      "pos": "C Mound"
      },
      {
       "slot": "sentinel",
@@ -1451,7 +1793,8 @@
        "trip",
        "slow"
       ],
-      "do": "hold A Main"
+      "do": "hold A Main",
+      "pos": "A Root"
      }
     ],
     "after": "Hit with about 40 seconds left; go through the doors if a site rotates."
@@ -1469,7 +1812,11 @@
        "slow",
        "hold"
       ],
-      "do": "anchor C"
+      "do": "anchor C",
+      "pos": "C Site",
+      "at": [
+       "C Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -1479,14 +1826,16 @@
        "molly",
        "slow"
       ],
-      "do": "C Link / Waterfall, help C"
+      "do": "C Link / Waterfall, help C",
+      "pos": "Waterfall"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "B, so smokes reach any site"
+      "do": "B, so smokes reach any site",
+      "pos": "B Upper"
      },
      {
       "slot": "initiator",
@@ -1496,7 +1845,11 @@
        "flash",
        "stun"
       ],
-      "do": "A: info on A Main early"
+      "do": "A: info on A Main early",
+      "pos": "A Site",
+      "at": [
+       "A Main"
+      ]
      },
      {
       "slot": "duelist",
@@ -1504,7 +1857,8 @@
        "entry",
        "flash"
       ],
-      "do": "A Top / Tree, help A"
+      "do": "A Top / Tree, help A",
+      "pos": "Tree"
      }
     ],
     "after": "Retake through the rotating door and the other entry at the same time."
@@ -1523,7 +1877,11 @@
        "flash",
        "stun"
       ],
-      "do": "util into A Main"
+      "do": "util into A Main",
+      "pos": "A Site",
+      "at": [
+       "A Main"
+      ]
      },
      {
       "slot": "duelist",
@@ -1531,7 +1889,11 @@
        "entry",
        "flash"
       ],
-      "do": "swing A Main right after the util"
+      "do": "swing A Main right after the util",
+      "go": [
+       "Tree",
+       "A Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -1541,14 +1903,19 @@
        "molly",
        "slow"
       ],
-      "do": "trade, then fall back"
+      "do": "trade, then fall back",
+      "pos": "A Hut"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke A Main for the fall back"
+      "do": "smoke A Main for the fall back",
+      "pos": "B Upper",
+      "at": [
+       "A Main"
+      ]
      },
      {
       "slot": "sentinel",
@@ -1557,7 +1924,8 @@
        "slow",
        "hold"
       ],
-      "do": "anchor C alone"
+      "do": "anchor C alone",
+      "pos": "C Site"
      }
     ],
     "after": "One fight, then back."
@@ -1576,7 +1944,11 @@
        "flash",
        "stun"
       ],
-      "do": "util into B Main"
+      "do": "util into B Main",
+      "pos": "B Site",
+      "at": [
+       "B Main"
+      ]
      },
      {
       "slot": "duelist",
@@ -1584,7 +1956,11 @@
        "entry",
        "flash"
       ],
-      "do": "push B Main, one fight, fall back"
+      "do": "push B Main, one fight, fall back",
+      "go": [
+       "B Site",
+       "B Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -1594,14 +1970,19 @@
        "molly",
        "slow"
       ],
-      "do": "trade from B site"
+      "do": "trade from B site",
+      "pos": "B Site"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke B Main for the fall back"
+      "do": "smoke B Main for the fall back",
+      "pos": "B Upper",
+      "at": [
+       "B Main"
+      ]
      },
      {
       "slot": "sentinel",
@@ -1610,7 +1991,8 @@
        "slow",
        "hold"
       ],
-      "do": "anchor C alone"
+      "do": "anchor C alone",
+      "pos": "C Site"
      }
     ],
     "after": "One fight, then back."
@@ -1628,7 +2010,11 @@
        "slow",
        "hold"
       ],
-      "do": "C site, trap C Main"
+      "do": "C site, trap C Main",
+      "pos": "C Site",
+      "at": [
+       "C Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -1638,14 +2024,16 @@
        "molly",
        "slow"
       ],
-      "do": "Waterfall"
+      "do": "Waterfall",
+      "pos": "Waterfall"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "B, ready to smoke C"
+      "do": "B, ready to smoke C",
+      "pos": "B Upper"
      },
      {
       "slot": "initiator",
@@ -1655,7 +2043,8 @@
        "flash",
        "stun"
       ],
-      "do": "A alone: info, fall back and call"
+      "do": "A alone: info, fall back and call",
+      "pos": "A Site"
      },
      {
       "slot": "duelist",
@@ -1663,7 +2052,8 @@
        "entry",
        "flash"
       ],
-      "do": "C Mound / Bend"
+      "do": "C Bend",
+      "pos": "C Bend"
      }
     ],
     "after": "A gamble. The A player calls and slows, doesn't fight."
@@ -1681,7 +2071,8 @@
        "slow",
        "hold"
       ],
-      "do": "anchor C"
+      "do": "anchor C",
+      "pos": "C Site"
      },
      {
       "slot": "fifth",
@@ -1691,14 +2082,23 @@
        "molly",
        "slow"
       ],
-      "do": "through the rotating door on the retake"
+      "do": "through the rotating door on the retake",
+      "go": [
+       "A Link",
+       "A Door"
+      ]
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "B; smoke Tree and Main for the retake"
+      "do": "B; smoke Tree and Main for the retake",
+      "pos": "B Upper",
+      "at": [
+       "Tree",
+       "A Main"
+      ]
      },
      {
       "slot": "initiator",
@@ -1708,7 +2108,8 @@
        "flash",
        "stun"
       ],
-      "do": "A: info only, fall back when they come"
+      "do": "A: info only, fall back when they come",
+      "pos": "A Top"
      },
      {
       "slot": "duelist",
@@ -1716,7 +2117,12 @@
        "entry",
        "flash"
       ],
-      "do": "A Link: first in on the retake"
+      "do": "A Top: first in on the retake",
+      "go": [
+       "A Top",
+       "A Stairs",
+       "A Site"
+      ]
      }
     ],
     "after": "Retake together from two sides; flash in at the same time."
@@ -1727,14 +2133,18 @@
     "name": "A execute",
     "side": "Attack",
     "call": "A GO",
-    "idea": "Hit A from A Main with Elbow and CT cut off.",
+    "idea": "Hit A from A Main with CT (Alley) cut off.",
     "steps": [
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke A Elbow and CT (A Link)"
+      "do": "smoke Alley (CT) and A Link",
+      "at": [
+       "A Alley",
+       "A Link"
+      ]
      },
      {
       "slot": "initiator",
@@ -1744,7 +2154,11 @@
        "flash",
        "stun"
       ],
-      "do": "clear A site from Main"
+      "do": "clear A site from Main",
+      "at": [
+       "A Site"
+      ],
+      "go": "aMain"
      },
      {
       "slot": "duelist",
@@ -1752,7 +2166,8 @@
        "entry",
        "flash"
       ],
-      "do": "first in from A Main"
+      "do": "first in from A Main",
+      "go": "aMain"
      },
      {
       "slot": "fifth",
@@ -1762,7 +2177,17 @@
        "entry",
        "clear"
       ],
-      "do": "come through Alley from mid on the same call"
+      "do": "trade the duelist, clear Elbow",
+      "go": [
+       "Attacker Side Spawn",
+       [
+        0.62,
+        0.86
+       ],
+       "A Lobby",
+       "A Main",
+       "A Elbow"
+      ]
      },
      {
       "slot": "sentinel",
@@ -1770,23 +2195,28 @@
        "trip",
        "slow"
       ],
-      "do": "watch mid / B Market flank"
+      "do": "watch mid / B Market flank",
+      "pos": "Mid Tiles"
      }
     ],
-    "after": "Plant default; hold from Main and Alley."
+    "after": "Plant default; hold from Main and Elbow."
    },
    {
     "name": "B execute",
     "side": "Attack",
     "call": "B GO",
-    "idea": "Through B Main with Market and CT cut off.",
+    "idea": "Through B Main with Market and CT (Boba) cut off.",
     "steps": [
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke Market and CT (Boba side)"
+      "do": "smoke Market and Boba (CT)",
+      "at": [
+       "B Market",
+       "B Boba"
+      ]
      },
      {
       "slot": "initiator",
@@ -1796,7 +2226,11 @@
        "flash",
        "stun"
       ],
-      "do": "clear the site from B Main"
+      "do": "clear the site from B Main",
+      "at": [
+       "B Site"
+      ],
+      "go": "bMain"
      },
      {
       "slot": "duelist",
@@ -1804,7 +2238,8 @@
        "entry",
        "flash"
       ],
-      "do": "first in, clear Boba"
+      "do": "first in, clear the site",
+      "go": "bMain"
      },
      {
       "slot": "fifth",
@@ -1814,7 +2249,8 @@
        "entry",
        "clear"
       ],
-      "do": "trade the duelist"
+      "do": "trade the duelist",
+      "go": "bMain"
      },
      {
       "slot": "sentinel",
@@ -1822,7 +2258,8 @@
        "trip",
        "slow"
       ],
-      "do": "watch mid for the flank"
+      "do": "watch mid for the flank",
+      "pos": "Mid Bottom"
      }
     ],
     "after": "Plant default; hold from Main and the site."
@@ -1841,7 +2278,10 @@
        "flash",
        "stun"
       ],
-      "do": "clear mid Top and Courtyard"
+      "do": "clear mid Top and Courtyard",
+      "at": [
+       "Mid Courtyard"
+      ]
      },
      {
       "slot": "duelist",
@@ -1849,14 +2289,16 @@
        "entry",
        "flash"
       ],
-      "do": "take mid Top after the info"
+      "do": "take mid Top after the info",
+      "go": "mid"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "keep smokes for the site the IGL picks"
+      "do": "keep smokes for the site the IGL picks",
+      "pos": "Mid Tiles"
      },
      {
       "slot": "fifth",
@@ -1866,7 +2308,8 @@
        "entry",
        "clear"
       ],
-      "do": "show A Main"
+      "do": "show A Main",
+      "pos": "A Lobby"
      },
      {
       "slot": "sentinel",
@@ -1874,10 +2317,11 @@
        "trip",
        "slow"
       ],
-      "do": "show B Main"
+      "do": "show B Main",
+      "pos": "B Lobby"
      }
     ],
-    "after": "From mid, go through Market (B) or Alley (A)."
+    "after": "From mid, go through Market (B) or A Link (A)."
    },
    {
     "name": "Fake A, hit B",
@@ -1893,7 +2337,10 @@
        "entry",
        "clear"
       ],
-      "do": "util into A Main to sell it, then rotate"
+      "do": "util into A Main to sell it, then rotate",
+      "at": [
+       "A Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -1903,14 +2350,19 @@
        "entry",
        "clear"
       ],
-      "do": "make noise at A for 10 seconds, then rotate"
+      "do": "make noise at A for 10 seconds, then rotate",
+      "pos": "A Lobby"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "save smokes for B: Market and CT"
+      "do": "save smokes for B: Market and Boba",
+      "at": [
+       "B Market",
+       "B Boba"
+      ]
      },
      {
       "slot": "duelist",
@@ -1918,7 +2370,8 @@
        "entry",
        "flash"
       ],
-      "do": "wait at B Main, first in when smokes land"
+      "do": "wait at B Main, first in when smokes land",
+      "go": "bMain"
      },
      {
       "slot": "sentinel",
@@ -1926,7 +2379,8 @@
        "trip",
        "slow"
       ],
-      "do": "lurk mid, call rotations"
+      "do": "lurk mid, call rotations",
+      "pos": "Mid Bottom"
      }
     ],
     "after": "Only worth it if the fake pulled their util."
@@ -1942,7 +2396,10 @@
       "use": [
        "smoke"
       ],
-      "do": "smoke Market"
+      "do": "smoke Market",
+      "at": [
+       "B Market"
+      ]
      },
      {
       "slot": "initiator",
@@ -1952,7 +2409,10 @@
        "flash",
        "stun"
       ],
-      "do": "util onto B site as you go"
+      "do": "util onto B site as you go",
+      "at": [
+       "B Site"
+      ]
      },
      {
       "slot": "duelist",
@@ -1960,7 +2420,8 @@
        "entry",
        "flash"
       ],
-      "do": "first through B Main"
+      "do": "first through B Main",
+      "go": "bMain"
      },
      {
       "slot": "fifth",
@@ -1970,7 +2431,8 @@
        "entry",
        "clear"
       ],
-      "do": "trade the duelist"
+      "do": "trade the duelist",
+      "go": "bMain"
      },
      {
       "slot": "sentinel",
@@ -1978,7 +2440,10 @@
        "trip",
        "slow"
       ],
-      "do": "plant, then watch Market"
+      "do": "plant, then watch Market",
+      "at": [
+       "B Market"
+      ]
      }
     ],
     "after": "Speed is the point."
@@ -1996,7 +2461,11 @@
        "slow",
        "hold"
       ],
-      "do": "anchor B"
+      "do": "anchor B",
+      "pos": "B Site",
+      "at": [
+       "B Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -2006,14 +2475,16 @@
        "molly",
        "slow"
       ],
-      "do": "A: hold A Main"
+      "do": "A: hold A Main",
+      "pos": "A Site"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "A or CT so smokes reach both sites"
+      "do": "CT so smokes reach both sites",
+      "pos": "Mid Top"
      },
      {
       "slot": "initiator",
@@ -2023,7 +2494,8 @@
        "flash",
        "stun"
       ],
-      "do": "mid: info, then fall back"
+      "do": "mid: info, then fall back",
+      "pos": "Mid Courtyard"
      },
      {
       "slot": "duelist",
@@ -2031,16 +2503,17 @@
        "entry",
        "flash"
       ],
-      "do": "mid: take one fight, fall back"
+      "do": "mid: take one fight, fall back",
+      "pos": "Mid Courtyard"
      }
     ],
-    "after": "Retake from CT plus the mid entry (Alley or Market)."
+    "after": "Retake from CT plus the mid entry (A Link or Market)."
    },
    {
     "name": "Mid push",
     "side": "Defense",
     "call": "MID PUSH",
-    "idea": "Two players fight for mid Top early.",
+    "idea": "Two players fight for mid early.",
     "steps": [
      {
       "slot": "initiator",
@@ -2050,7 +2523,11 @@
        "flash",
        "stun"
       ],
-      "do": "util into mid"
+      "do": "util into mid",
+      "pos": "Mid Top",
+      "at": [
+       "Mid Bottom"
+      ]
      },
      {
       "slot": "duelist",
@@ -2058,7 +2535,12 @@
        "entry",
        "flash"
       ],
-      "do": "take mid Top, one fight, fall back"
+      "do": "take mid, one fight, fall back",
+      "go": [
+       "Mid Top",
+       "Mid Courtyard",
+       "Mid Bottom"
+      ]
      },
      {
       "slot": "fifth",
@@ -2068,14 +2550,19 @@
        "molly",
        "slow"
       ],
-      "do": "anchor A alone"
+      "do": "anchor A alone",
+      "pos": "A Site"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke mid for the fall back"
+      "do": "smoke mid for the fall back",
+      "pos": "Mid Top",
+      "at": [
+       "Mid Courtyard"
+      ]
      },
      {
       "slot": "sentinel",
@@ -2084,7 +2571,8 @@
        "slow",
        "hold"
       ],
-      "do": "anchor B alone"
+      "do": "anchor B alone",
+      "pos": "B Site"
      }
     ],
     "after": "One fight, then back."
@@ -2103,7 +2591,11 @@
        "flash",
        "stun"
       ],
-      "do": "util into A Main"
+      "do": "util into A Main",
+      "pos": "A Site",
+      "at": [
+       "A Main"
+      ]
      },
      {
       "slot": "duelist",
@@ -2111,7 +2603,11 @@
        "entry",
        "flash"
       ],
-      "do": "swing A Main after the util"
+      "do": "swing A Main after the util",
+      "go": [
+       "A Site",
+       "A Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -2121,14 +2617,19 @@
        "molly",
        "slow"
       ],
-      "do": "trade, then fall back"
+      "do": "trade, then fall back",
+      "pos": "A Elbow"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke A Main for the fall back"
+      "do": "smoke A Main for the fall back",
+      "pos": "A Alley",
+      "at": [
+       "A Main"
+      ]
      },
      {
       "slot": "sentinel",
@@ -2137,7 +2638,8 @@
        "slow",
        "hold"
       ],
-      "do": "anchor B alone"
+      "do": "anchor B alone",
+      "pos": "B Site"
      }
     ],
     "after": "One fight, then back."
@@ -2155,7 +2657,11 @@
        "slow",
        "hold"
       ],
-      "do": "B site, trap B Main"
+      "do": "B site, trap B Main",
+      "pos": "B Site",
+      "at": [
+       "B Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -2165,14 +2671,16 @@
        "molly",
        "slow"
       ],
-      "do": "Market"
+      "do": "Market",
+      "pos": "B Market"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "mid / CT, ready to smoke B"
+      "do": "mid / CT, ready to smoke B",
+      "pos": "Mid Top"
      },
      {
       "slot": "initiator",
@@ -2182,7 +2690,8 @@
        "flash",
        "stun"
       ],
-      "do": "A alone: info, fall back and call"
+      "do": "A alone: info, fall back and call",
+      "pos": "A Site"
      },
      {
       "slot": "duelist",
@@ -2190,7 +2699,8 @@
        "entry",
        "flash"
       ],
-      "do": "B site / Boba"
+      "do": "Boba",
+      "pos": "B Boba"
      }
     ],
     "after": "A gamble. The A player calls and slows, doesn't fight."
@@ -2208,7 +2718,8 @@
        "slow",
        "hold"
       ],
-      "do": "anchor B"
+      "do": "anchor B",
+      "pos": "B Site"
      },
      {
       "slot": "fifth",
@@ -2218,14 +2729,27 @@
        "molly",
        "slow"
       ],
-      "do": "Alley side on the retake"
+      "do": "A Link side on the retake",
+      "go": [
+       "Mid Top",
+       [
+        0.6,
+        0.33
+       ],
+       "A Link"
+      ]
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "CT; smoke Main and Elbow for the retake"
+      "do": "smoke Main and Elbow for the retake",
+      "pos": "Mid Top",
+      "at": [
+       "A Main",
+       "A Elbow"
+      ]
      },
      {
       "slot": "initiator",
@@ -2235,7 +2759,8 @@
        "flash",
        "stun"
       ],
-      "do": "A: info only, fall back to CT when they come"
+      "do": "A: info only, fall back to Alley when they come",
+      "pos": "A Alley"
      },
      {
       "slot": "duelist",
@@ -2243,10 +2768,14 @@
        "entry",
        "flash"
       ],
-      "do": "CT: first in on the retake"
+      "do": "Alley: first in on the retake",
+      "go": [
+       "A Alley",
+       "A Site"
+      ]
      }
     ],
-    "after": "Retake together from CT and Alley; flash in at the same time."
+    "after": "Retake together from Alley and A Link; flash in at the same time."
    }
   ],
   "Abyss": [
@@ -2261,7 +2790,11 @@
       "use": [
        "smoke"
       ],
-      "do": "smoke A Tower and A Link"
+      "do": "smoke A Tower and A Link",
+      "at": [
+       "A Tower",
+       "A Link"
+      ]
      },
      {
       "slot": "initiator",
@@ -2271,7 +2804,11 @@
        "flash",
        "stun"
       ],
-      "do": "clear Secret and the site from A Main"
+      "do": "clear the site from A Main",
+      "at": [
+       "A Site"
+      ],
+      "go": "aMain"
      },
      {
       "slot": "duelist",
@@ -2279,7 +2816,8 @@
        "entry",
        "flash"
       ],
-      "do": "first in"
+      "do": "first in",
+      "go": "aMain"
      },
      {
       "slot": "fifth",
@@ -2289,7 +2827,13 @@
        "entry",
        "clear"
       ],
-      "do": "trade the duelist, clear Secret"
+      "do": "trade the duelist, clear Bridge",
+      "go": [
+       "Attacker Side Spawn",
+       "A Lobby",
+       "A Main",
+       "A Bridge"
+      ]
      },
      {
       "slot": "sentinel",
@@ -2297,7 +2841,8 @@
        "trip",
        "slow"
       ],
-      "do": "watch mid / Link flank"
+      "do": "watch mid for the flank",
+      "pos": "Mid Catwalk"
      }
     ],
     "after": "Plant default; mind the map edge."
@@ -2313,7 +2858,11 @@
       "use": [
        "smoke"
       ],
-      "do": "smoke B Tower and B Link"
+      "do": "smoke B Tower and B Link",
+      "at": [
+       "B Tower",
+       "B Link"
+      ]
      },
      {
       "slot": "initiator",
@@ -2323,7 +2872,11 @@
        "flash",
        "stun"
       ],
-      "do": "clear the site from B Main"
+      "do": "clear the site from B Main",
+      "at": [
+       "B Site"
+      ],
+      "go": "bMain"
      },
      {
       "slot": "duelist",
@@ -2331,7 +2884,8 @@
        "entry",
        "flash"
       ],
-      "do": "first in"
+      "do": "first in",
+      "go": "bMain"
      },
      {
       "slot": "fifth",
@@ -2341,7 +2895,8 @@
        "entry",
        "clear"
       ],
-      "do": "trade the duelist"
+      "do": "trade the duelist",
+      "go": "bMain"
      },
      {
       "slot": "sentinel",
@@ -2349,7 +2904,8 @@
        "trip",
        "slow"
       ],
-      "do": "watch mid for the flank"
+      "do": "watch mid for the flank",
+      "pos": "Mid Bend"
      }
     ],
     "after": "Plant default; hold from Main and site."
@@ -2368,7 +2924,10 @@
        "flash",
        "stun"
       ],
-      "do": "clear mid Top / Bend"
+      "do": "clear mid Top",
+      "at": [
+       "Mid Top"
+      ]
      },
      {
       "slot": "duelist",
@@ -2376,14 +2935,16 @@
        "entry",
        "flash"
       ],
-      "do": "take mid Top"
+      "do": "take mid Top",
+      "go": "mid"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "keep smokes for the chosen site"
+      "do": "keep smokes for the chosen site",
+      "pos": "Mid Bend"
      },
      {
       "slot": "fifth",
@@ -2393,7 +2954,8 @@
        "entry",
        "clear"
       ],
-      "do": "lurk the chosen site's Main"
+      "do": "lurk the chosen site's Main",
+      "pos": "B Main"
      },
      {
       "slot": "sentinel",
@@ -2401,7 +2963,10 @@
        "trip",
        "slow"
       ],
-      "do": "trap mid behind you"
+      "do": "trap mid behind you",
+      "at": [
+       "Mid Bottom"
+      ]
      }
     ],
     "after": "Hit from mid and Main together."
@@ -2420,7 +2985,10 @@
        "entry",
        "clear"
       ],
-      "do": "util into A Main to sell it, then rotate"
+      "do": "util into A Main to sell it, then rotate",
+      "at": [
+       "A Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -2430,14 +2998,19 @@
        "entry",
        "clear"
       ],
-      "do": "make noise at A for 10 seconds, then rotate"
+      "do": "make noise at A for 10 seconds, then rotate",
+      "pos": "A Lobby"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "save smokes for B: Tower and Link"
+      "do": "save smokes for B: Tower and Link",
+      "at": [
+       "B Tower",
+       "B Link"
+      ]
      },
      {
       "slot": "duelist",
@@ -2445,7 +3018,8 @@
        "entry",
        "flash"
       ],
-      "do": "wait at B Main, first in when smokes land"
+      "do": "wait at B Main, first in when smokes land",
+      "go": "bMain"
      },
      {
       "slot": "sentinel",
@@ -2453,7 +3027,8 @@
        "trip",
        "slow"
       ],
-      "do": "lurk mid, call rotations"
+      "do": "lurk mid, call rotations",
+      "pos": "Mid Bend"
      }
     ],
     "after": "Only worth it if the fake pulled their util."
@@ -2469,7 +3044,10 @@
       "use": [
        "smoke"
       ],
-      "do": "smoke A Link"
+      "do": "smoke A Link",
+      "at": [
+       "A Link"
+      ]
      },
      {
       "slot": "initiator",
@@ -2479,7 +3057,10 @@
        "flash",
        "stun"
       ],
-      "do": "util onto A site as you go"
+      "do": "util onto A site as you go",
+      "at": [
+       "A Site"
+      ]
      },
      {
       "slot": "duelist",
@@ -2487,7 +3068,8 @@
        "entry",
        "flash"
       ],
-      "do": "first through A Main"
+      "do": "first through A Main",
+      "go": "aMain"
      },
      {
       "slot": "fifth",
@@ -2497,7 +3079,8 @@
        "entry",
        "clear"
       ],
-      "do": "trade the duelist"
+      "do": "trade the duelist",
+      "go": "aMain"
      },
      {
       "slot": "sentinel",
@@ -2505,7 +3088,10 @@
        "trip",
        "slow"
       ],
-      "do": "plant, then watch Link"
+      "do": "plant, then watch Link",
+      "at": [
+       "A Link"
+      ]
      }
     ],
     "after": "Speed is the point."
@@ -2523,7 +3109,11 @@
        "slow",
        "hold"
       ],
-      "do": "anchor B"
+      "do": "anchor B",
+      "pos": "B Site",
+      "at": [
+       "B Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -2533,14 +3123,16 @@
        "molly",
        "slow"
       ],
-      "do": "support the B anchor"
+      "do": "support the B anchor",
+      "pos": "B Tower"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "mid, so smokes reach both sites"
+      "do": "mid, so smokes reach both sites",
+      "pos": "Mid Top"
      },
      {
       "slot": "initiator",
@@ -2550,7 +3142,11 @@
        "flash",
        "stun"
       ],
-      "do": "info on A Main"
+      "do": "info on A Main",
+      "pos": "A Site",
+      "at": [
+       "A Main"
+      ]
      },
      {
       "slot": "duelist",
@@ -2558,7 +3154,8 @@
        "entry",
        "flash"
       ],
-      "do": "A site"
+      "do": "A site",
+      "pos": "A Tower"
      }
     ],
     "after": "Retake from Link plus Tower."
@@ -2577,7 +3174,11 @@
        "flash",
        "stun"
       ],
-      "do": "util into mid"
+      "do": "util into mid",
+      "pos": "Mid Top",
+      "at": [
+       "Mid Bottom"
+      ]
      },
      {
       "slot": "duelist",
@@ -2585,7 +3186,12 @@
        "entry",
        "flash"
       ],
-      "do": "take mid, one fight, fall back"
+      "do": "take mid, one fight, fall back",
+      "go": [
+       "Mid Top",
+       "Mid Library",
+       "Mid Bottom"
+      ]
      },
      {
       "slot": "fifth",
@@ -2595,14 +3201,19 @@
        "molly",
        "slow"
       ],
-      "do": "anchor A alone"
+      "do": "anchor A alone",
+      "pos": "A Site"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke mid for the fall back"
+      "do": "smoke mid for the fall back",
+      "pos": "Mid Top",
+      "at": [
+       "Mid Library"
+      ]
      },
      {
       "slot": "sentinel",
@@ -2611,7 +3222,8 @@
        "slow",
        "hold"
       ],
-      "do": "anchor B alone"
+      "do": "anchor B alone",
+      "pos": "B Site"
      }
     ],
     "after": "One fight, then back."
@@ -2630,7 +3242,11 @@
        "flash",
        "stun"
       ],
-      "do": "util into B Main"
+      "do": "util into B Main",
+      "pos": "B Site",
+      "at": [
+       "B Main"
+      ]
      },
      {
       "slot": "duelist",
@@ -2638,7 +3254,11 @@
        "entry",
        "flash"
       ],
-      "do": "swing B Main after the util"
+      "do": "swing B Main after the util",
+      "go": [
+       "B Site",
+       "B Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -2648,14 +3268,19 @@
        "molly",
        "slow"
       ],
-      "do": "trade, then fall back"
+      "do": "trade, then fall back",
+      "pos": "B Site"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke B Main for the fall back"
+      "do": "smoke B Main for the fall back",
+      "pos": "B Tower",
+      "at": [
+       "B Main"
+      ]
      },
      {
       "slot": "sentinel",
@@ -2664,7 +3289,8 @@
        "slow",
        "hold"
       ],
-      "do": "anchor A alone"
+      "do": "anchor A alone",
+      "pos": "A Site"
      }
     ],
     "after": "One fight, then back."
@@ -2682,7 +3308,11 @@
        "slow",
        "hold"
       ],
-      "do": "A site, trap A Main"
+      "do": "A site, trap A Main",
+      "pos": "A Site",
+      "at": [
+       "A Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -2692,14 +3322,16 @@
        "molly",
        "slow"
       ],
-      "do": "A Secret"
+      "do": "A Bridge",
+      "pos": "A Bridge"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "mid, ready to smoke A"
+      "do": "mid, ready to smoke A",
+      "pos": "Mid Top"
      },
      {
       "slot": "initiator",
@@ -2709,7 +3341,8 @@
        "flash",
        "stun"
       ],
-      "do": "B alone: info, fall back and call"
+      "do": "B alone: info, fall back and call",
+      "pos": "B Site"
      },
      {
       "slot": "duelist",
@@ -2717,7 +3350,8 @@
        "entry",
        "flash"
       ],
-      "do": "A Tower"
+      "do": "A Tower",
+      "pos": "A Tower"
      }
     ],
     "after": "A gamble. The B player calls and slows, doesn't fight."
@@ -2735,7 +3369,8 @@
        "slow",
        "hold"
       ],
-      "do": "anchor A"
+      "do": "anchor A",
+      "pos": "A Site"
      },
      {
       "slot": "fifth",
@@ -2745,14 +3380,23 @@
        "molly",
        "slow"
       ],
-      "do": "mid side on the retake"
+      "do": "mid side on the retake",
+      "go": [
+       "Mid Top",
+       "B Link"
+      ]
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke B Main and Tower for the retake"
+      "do": "smoke B Main and Tower for the retake",
+      "pos": "Mid Top",
+      "at": [
+       "B Main",
+       "B Nest"
+      ]
      },
      {
       "slot": "initiator",
@@ -2762,7 +3406,8 @@
        "flash",
        "stun"
       ],
-      "do": "B: info only, fall back to Link when they come"
+      "do": "B: info only, fall back to Link when they come",
+      "pos": "B Link"
      },
      {
       "slot": "duelist",
@@ -2770,10 +3415,15 @@
        "entry",
        "flash"
       ],
-      "do": "B Link: first in on the retake"
+      "do": "B Link: first in on the retake",
+      "go": [
+       "B Link",
+       "B Tower",
+       "B Site"
+      ]
      }
     ],
-    "after": "Retake together from Link and mid; flash in at the same time."
+    "after": "Retake together from Link and Tower; flash in at the same time."
    }
   ],
   "Corrode": [
@@ -2788,7 +3438,11 @@
       "use": [
        "smoke"
       ],
-      "do": "smoke Mid Stairs, then CT on A"
+      "do": "smoke Mid Stairs, then CT on A",
+      "at": [
+       "Mid Top",
+       "A Crane"
+      ]
      },
      {
       "slot": "initiator",
@@ -2798,7 +3452,11 @@
        "flash",
        "stun"
       ],
-      "do": "clear Pocket and Elbow"
+      "do": "clear Pocket and Elbow",
+      "at": [
+       "A Pocket"
+      ],
+      "go": "aMain"
      },
      {
       "slot": "duelist",
@@ -2806,7 +3464,8 @@
        "entry",
        "flash"
       ],
-      "do": "first through A Main into Yard"
+      "do": "first through A Main into Yard",
+      "go": "aMain"
      },
      {
       "slot": "fifth",
@@ -2816,7 +3475,8 @@
        "entry",
        "clear"
       ],
-      "do": "come through A Link on the same call"
+      "do": "come through A Link on the same call",
+      "go": "aLink"
      },
      {
       "slot": "sentinel",
@@ -2824,10 +3484,11 @@
        "trip",
        "slow"
       ],
-      "do": "watch mid / B Link flank"
+      "do": "watch mid / B Link flank",
+      "pos": "Mid Bottom"
      }
     ],
-    "after": "Plant; hold from Elbow corners, Link, Yard and Main."
+    "after": "Plant; hold from Elbow, Link, Yard and Main."
    },
    {
     "name": "B execute",
@@ -2840,7 +3501,11 @@
       "use": [
        "smoke"
       ],
-      "do": "smoke B Tower and B Elbow"
+      "do": "smoke B Tower and B Elbow",
+      "at": [
+       "B Tower",
+       "B Elbow"
+      ]
      },
      {
       "slot": "initiator",
@@ -2850,7 +3515,11 @@
        "flash",
        "stun"
       ],
-      "do": "clear under the ramp and the left corner of B Main"
+      "do": "clear the corners of B Main",
+      "at": [
+       "B Site"
+      ],
+      "go": "bMain"
      },
      {
       "slot": "duelist",
@@ -2858,7 +3527,8 @@
        "entry",
        "flash"
       ],
-      "do": "first through B Main"
+      "do": "first through B Main",
+      "go": "bMain"
      },
      {
       "slot": "fifth",
@@ -2868,7 +3538,8 @@
        "entry",
        "clear"
       ],
-      "do": "trade the duelist"
+      "do": "trade the duelist",
+      "go": "bMain"
      },
      {
       "slot": "sentinel",
@@ -2876,7 +3547,8 @@
        "trip",
        "slow"
       ],
-      "do": "watch B Link / mid flank"
+      "do": "watch B Link / mid flank",
+      "pos": "Mid Bottom"
      }
     ],
     "after": "Plant; play from Elbow, Tower, the shed or boxes."
@@ -2895,7 +3567,10 @@
        "flash",
        "stun"
       ],
-      "do": "util onto Stairs, take it with the duelist"
+      "do": "util onto Stairs, take it with the duelist",
+      "at": [
+       "Mid Stairs"
+      ]
      },
      {
       "slot": "duelist",
@@ -2903,14 +3578,19 @@
        "entry",
        "flash"
       ],
-      "do": "push B Link"
+      "do": "push B Link",
+      "go": "bLink"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke A Link and Top Mid, then Window"
+      "do": "smoke A Link and Window",
+      "at": [
+       "A Link",
+       "Mid Window"
+      ]
      },
      {
       "slot": "fifth",
@@ -2920,7 +3600,8 @@
        "entry",
        "clear"
       ],
-      "do": "trade the duelist through B Link"
+      "do": "trade the duelist through B Link",
+      "go": "bLink"
      },
      {
       "slot": "sentinel",
@@ -2928,7 +3609,8 @@
        "trip",
        "slow"
       ],
-      "do": "show B Main to split them"
+      "do": "show B Main to split them",
+      "pos": "B Main"
      }
     ],
     "after": "If they give up mid early, flank from A Main or B Main."
@@ -2947,7 +3629,10 @@
        "entry",
        "clear"
       ],
-      "do": "util into B Main to sell it, then rotate"
+      "do": "util into B Main to sell it, then rotate",
+      "at": [
+       "B Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -2957,14 +3642,19 @@
        "entry",
        "clear"
       ],
-      "do": "make noise at B for 10 seconds, then rotate"
+      "do": "make noise at B for 10 seconds, then rotate",
+      "pos": "B Lobby"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "save smokes for A: Mid Stairs and CT"
+      "do": "save smokes for A: Mid Stairs and CT",
+      "at": [
+       "Mid Top",
+       "A Crane"
+      ]
      },
      {
       "slot": "duelist",
@@ -2972,7 +3662,8 @@
        "entry",
        "flash"
       ],
-      "do": "wait at A Main, first in when smokes land"
+      "do": "wait at A Main, first in when smokes land",
+      "go": "aMain"
      },
      {
       "slot": "sentinel",
@@ -2980,7 +3671,8 @@
        "trip",
        "slow"
       ],
-      "do": "lurk B Main, call rotations"
+      "do": "lurk B Main, call rotations",
+      "pos": "B Lobby"
      }
     ],
     "after": "Only worth it if the fake pulled their util."
@@ -2999,7 +3691,10 @@
        "flash",
        "stun"
       ],
-      "do": "info on A Yard"
+      "do": "info on A Yard",
+      "at": [
+       "A Yard"
+      ]
      },
      {
       "slot": "duelist",
@@ -3007,14 +3702,16 @@
        "entry",
        "flash"
       ],
-      "do": "take Yard"
+      "do": "take Yard",
+      "go": "aMain"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "keep smokes for A CT"
+      "do": "keep smokes for A CT",
+      "pos": "A Lobby"
      },
      {
       "slot": "fifth",
@@ -3024,7 +3721,8 @@
        "entry",
        "clear"
       ],
-      "do": "show mid"
+      "do": "show mid",
+      "pos": "Mid Bottom"
      },
      {
       "slot": "sentinel",
@@ -3032,7 +3730,8 @@
        "trip",
        "slow"
       ],
-      "do": "hold B Main"
+      "do": "hold B Main",
+      "pos": "B Lobby"
      }
     ],
     "after": "Hit A from Yard and Elbow, or rotate if A is stacked."
@@ -3041,7 +3740,7 @@
     "name": "Stairs hold",
     "side": "Defense",
     "call": "DEFAULT",
-    "idea": "Fight for mid Stairs from Top Mid and A Link; B is easy to hold.",
+    "idea": "Fight for mid Stairs; B is easy to hold.",
     "steps": [
      {
       "slot": "sentinel",
@@ -3050,7 +3749,11 @@
        "slow",
        "hold"
       ],
-      "do": "anchor B (tight choke)"
+      "do": "anchor B (tight choke)",
+      "pos": "B Site",
+      "at": [
+       "B Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -3060,14 +3763,19 @@
        "molly",
        "slow"
       ],
-      "do": "A: crossfire from Pocket and Elbow"
+      "do": "A: crossfire from Pocket and Elbow",
+      "pos": "A Elbow"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke off Stairs from Top Mid"
+      "do": "smoke off Stairs from Top Mid",
+      "pos": "Mid Top",
+      "at": [
+       "Mid Stairs"
+      ]
      },
      {
       "slot": "initiator",
@@ -3077,7 +3785,11 @@
        "flash",
        "stun"
       ],
-      "do": "info on A through the wall hole"
+      "do": "info on A from the site",
+      "pos": "A Site",
+      "at": [
+       "A Yard"
+      ]
      },
      {
       "slot": "duelist",
@@ -3085,7 +3797,8 @@
        "entry",
        "flash"
       ],
-      "do": "mid fight with the controller, then fall back"
+      "do": "mid fight with the controller, then fall back",
+      "pos": "Mid Top"
      }
     ],
     "after": "Retake A from Defender Spawn, Link and Main."
@@ -3104,7 +3817,11 @@
        "flash",
        "stun"
       ],
-      "do": "util onto Stairs"
+      "do": "util onto Stairs",
+      "pos": "Mid Top",
+      "at": [
+       "Mid Stairs"
+      ]
      },
      {
       "slot": "duelist",
@@ -3112,7 +3829,12 @@
        "entry",
        "flash"
       ],
-      "do": "take Stairs, one fight, fall back"
+      "do": "take Stairs, one fight, fall back",
+      "go": [
+       "Mid Top",
+       "Mid Stairs",
+       "Mid Bottom"
+      ]
      },
      {
       "slot": "fifth",
@@ -3122,14 +3844,19 @@
        "molly",
        "slow"
       ],
-      "do": "anchor A alone"
+      "do": "anchor A alone",
+      "pos": "A Site"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke Stairs for the fall back"
+      "do": "smoke Stairs for the fall back",
+      "pos": "Mid Window",
+      "at": [
+       "Mid Stairs"
+      ]
      },
      {
       "slot": "sentinel",
@@ -3138,7 +3865,8 @@
        "slow",
        "hold"
       ],
-      "do": "anchor B alone"
+      "do": "anchor B alone",
+      "pos": "B Site"
      }
     ],
     "after": "One fight, then back."
@@ -3157,7 +3885,11 @@
        "flash",
        "stun"
       ],
-      "do": "util into A Main"
+      "do": "util into A Main",
+      "pos": "A Site",
+      "at": [
+       "A Main"
+      ]
      },
      {
       "slot": "duelist",
@@ -3165,7 +3897,12 @@
        "entry",
        "flash"
       ],
-      "do": "swing A Main after the util"
+      "do": "swing A Main after the util",
+      "go": [
+       "A Site",
+       "A Yard",
+       "A Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -3175,14 +3912,19 @@
        "molly",
        "slow"
       ],
-      "do": "trade, then fall back"
+      "do": "trade, then fall back",
+      "pos": "A Pocket"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke A Main for the fall back"
+      "do": "smoke A Main for the fall back",
+      "pos": "A Crane",
+      "at": [
+       "A Main"
+      ]
      },
      {
       "slot": "sentinel",
@@ -3191,7 +3933,8 @@
        "slow",
        "hold"
       ],
-      "do": "anchor B alone"
+      "do": "anchor B alone",
+      "pos": "B Site"
      }
     ],
     "after": "One fight, then back."
@@ -3209,7 +3952,11 @@
        "slow",
        "hold"
       ],
-      "do": "B alone, trap B Main"
+      "do": "B alone, trap B Main",
+      "pos": "B Site",
+      "at": [
+       "B Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -3219,14 +3966,16 @@
        "molly",
        "slow"
       ],
-      "do": "A Pocket"
+      "do": "A Pocket",
+      "pos": "A Pocket"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "Top Mid, ready to smoke A"
+      "do": "Top Mid, ready to smoke A",
+      "pos": "Mid Top"
      },
      {
       "slot": "initiator",
@@ -3236,7 +3985,8 @@
        "flash",
        "stun"
       ],
-      "do": "A Elbow"
+      "do": "A Elbow",
+      "pos": "A Elbow"
      },
      {
       "slot": "duelist",
@@ -3244,7 +3994,8 @@
        "entry",
        "flash"
       ],
-      "do": "A Yard"
+      "do": "A Yard",
+      "pos": "A Yard"
      }
     ],
     "after": "The B player calls and slows; the A stack rotates if B is hit."
@@ -3262,7 +4013,8 @@
        "slow",
        "hold"
       ],
-      "do": "anchor B"
+      "do": "anchor B",
+      "pos": "B Site"
      },
      {
       "slot": "fifth",
@@ -3272,14 +4024,23 @@
        "molly",
        "slow"
       ],
-      "do": "Link side on the retake"
+      "do": "Link side on the retake",
+      "go": [
+       "Mid Top",
+       "A Link"
+      ]
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke Main and Yard for the retake"
+      "do": "smoke Main and Yard for the retake",
+      "pos": "Mid Top",
+      "at": [
+       "A Main",
+       "A Yard"
+      ]
      },
      {
       "slot": "initiator",
@@ -3289,7 +4050,8 @@
        "flash",
        "stun"
       ],
-      "do": "A: info only, fall back when they come"
+      "do": "A: info only, fall back when they come",
+      "pos": "A Crane"
      },
      {
       "slot": "duelist",
@@ -3297,10 +4059,14 @@
        "entry",
        "flash"
       ],
-      "do": "Defender Spawn side: first in on the retake"
+      "do": "CT: first in on the retake",
+      "go": [
+       "A Crane",
+       "A Site"
+      ]
      }
     ],
-    "after": "Retake together from Spawn, Link and Main; flash in at the same time."
+    "after": "Retake together from CT and Link; flash in at the same time."
    }
   ],
   "Summit": [
@@ -3318,7 +4084,10 @@
        "flash",
        "stun"
       ],
-      "do": "take Mid Fountain"
+      "do": "take Mid Fountain",
+      "at": [
+       "Mid Fountain"
+      ]
      },
      {
       "slot": "duelist",
@@ -3326,14 +4095,18 @@
        "entry",
        "flash"
       ],
-      "do": "first through A Link from Mid Bend"
+      "do": "first through A Link from Mid Bend",
+      "go": "aLink"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke CT on A"
+      "do": "smoke CT on A",
+      "at": [
+       "A Art"
+      ]
      },
      {
       "slot": "fifth",
@@ -3343,7 +4116,8 @@
        "entry",
        "clear"
       ],
-      "do": "come down A Main, clear Garden"
+      "do": "come down A Main, clear Garden",
+      "go": "aMain"
      },
      {
       "slot": "sentinel",
@@ -3351,7 +4125,8 @@
        "trip",
        "slow"
       ],
-      "do": "watch mid; drop the Mid Wall after the hit"
+      "do": "watch mid; drop the Mid Wall after the hit",
+      "pos": "Mid Fountain"
      }
     ],
     "after": "Plant; drop the A Wall to cut retake routes."
@@ -3367,7 +4142,11 @@
       "use": [
        "smoke"
       ],
-      "do": "smoke B Tower and B Link"
+      "do": "smoke B Tower and B Link",
+      "at": [
+       "B Tower",
+       "B Link"
+      ]
      },
      {
       "slot": "initiator",
@@ -3377,7 +4156,11 @@
        "flash",
        "stun"
       ],
-      "do": "clear Close Box and Triples"
+      "do": "clear Close Box",
+      "at": [
+       "Close Box"
+      ],
+      "go": "bMain"
      },
      {
       "slot": "duelist",
@@ -3385,7 +4168,8 @@
        "entry",
        "flash"
       ],
-      "do": "first in from B Main"
+      "do": "first in from B Main",
+      "go": "bMain"
      },
      {
       "slot": "fifth",
@@ -3395,7 +4179,8 @@
        "entry",
        "clear"
       ],
-      "do": "trade the duelist"
+      "do": "trade the duelist",
+      "go": "bMain"
      },
      {
       "slot": "sentinel",
@@ -3403,7 +4188,8 @@
        "trip",
        "slow"
       ],
-      "do": "watch the flank, then drop the B Wall after the plant"
+      "do": "watch the flank, then drop the B Wall after the plant",
+      "pos": "B Lobby"
      }
     ],
     "after": "Big site, lots of post-plant spots."
@@ -3422,7 +4208,10 @@
        "flash",
        "stun"
       ],
-      "do": "info on mid from Mid Bottom"
+      "do": "info on mid from Mid Bottom",
+      "at": [
+       "Mid Bottom"
+      ]
      },
      {
       "slot": "duelist",
@@ -3430,14 +4219,18 @@
        "entry",
        "flash"
       ],
-      "do": "push Mid Bottom into B Link"
+      "do": "push Mid Bottom into B Link",
+      "go": "bLink"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke B Tower when it's time"
+      "do": "smoke B Tower when it's time",
+      "at": [
+       "B Tower"
+      ]
      },
      {
       "slot": "fifth",
@@ -3447,7 +4240,8 @@
        "entry",
        "clear"
       ],
-      "do": "B Main"
+      "do": "B Main",
+      "go": "bMain"
      },
      {
       "slot": "sentinel",
@@ -3455,7 +4249,8 @@
        "trip",
        "slow"
       ],
-      "do": "B Main"
+      "do": "B Main",
+      "pos": "B Lobby"
      }
     ],
     "after": "Hit B from B Main and B Link together."
@@ -3471,7 +4266,10 @@
       "use": [
        "smoke"
       ],
-      "do": "smoke CT on A"
+      "do": "smoke CT on A",
+      "at": [
+       "A Art"
+      ]
      },
      {
       "slot": "initiator",
@@ -3481,7 +4279,10 @@
        "flash",
        "stun"
       ],
-      "do": "util onto A site as you go"
+      "do": "util onto A site as you go",
+      "at": [
+       "A Site"
+      ]
      },
      {
       "slot": "duelist",
@@ -3489,7 +4290,8 @@
        "entry",
        "flash"
       ],
-      "do": "first through A Main"
+      "do": "first through A Main",
+      "go": "aMain"
      },
      {
       "slot": "fifth",
@@ -3499,7 +4301,8 @@
        "entry",
        "clear"
       ],
-      "do": "trade the duelist, clear Garden"
+      "do": "trade the duelist, clear Garden",
+      "go": "aMain"
      },
      {
       "slot": "sentinel",
@@ -3507,7 +4310,10 @@
        "trip",
        "slow"
       ],
-      "do": "plant, then watch A Link"
+      "do": "plant, then watch A Link",
+      "at": [
+       "A Link"
+      ]
      }
     ],
     "after": "Speed is the point."
@@ -3526,7 +4332,10 @@
        "entry",
        "clear"
       ],
-      "do": "util into A Main to sell it, then rotate"
+      "do": "util into A Main to sell it, then rotate",
+      "at": [
+       "A Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -3536,14 +4345,19 @@
        "entry",
        "clear"
       ],
-      "do": "make noise at A for 10 seconds, then rotate"
+      "do": "make noise at A for 10 seconds, then rotate",
+      "pos": "A Lobby"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "save smokes for B: Tower and Link"
+      "do": "save smokes for B: Tower and Link",
+      "at": [
+       "B Tower",
+       "B Link"
+      ]
      },
      {
       "slot": "duelist",
@@ -3551,7 +4365,8 @@
        "entry",
        "flash"
       ],
-      "do": "wait at B Main, first in when smokes land"
+      "do": "wait at B Main, first in when smokes land",
+      "go": "bMain"
      },
      {
       "slot": "sentinel",
@@ -3559,7 +4374,8 @@
        "trip",
        "slow"
       ],
-      "do": "lurk mid, call rotations"
+      "do": "lurk mid, call rotations",
+      "pos": "Mid Fountain"
      }
     ],
     "after": "Only worth it if the fake pulled their util."
@@ -3577,7 +4393,11 @@
        "slow",
        "hold"
       ],
-      "do": "anchor B, save util for the retake"
+      "do": "anchor B, save util for the retake",
+      "pos": "B Site",
+      "at": [
+       "B Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -3587,14 +4407,19 @@
        "molly",
        "slow"
       ],
-      "do": "B Link / Tower"
+      "do": "B Link / Tower",
+      "pos": "B Link"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "mid: hold Fountain"
+      "do": "mid: hold Fountain",
+      "pos": "Mid Bottom",
+      "at": [
+       "Mid Fountain"
+      ]
      },
      {
       "slot": "initiator",
@@ -3604,7 +4429,11 @@
        "flash",
        "stun"
       ],
-      "do": "A: info on A Main"
+      "do": "A: info on A Main",
+      "pos": "A Site",
+      "at": [
+       "A Main"
+      ]
      },
      {
       "slot": "duelist",
@@ -3612,7 +4441,8 @@
        "entry",
        "flash"
       ],
-      "do": "mid with the controller"
+      "do": "mid with the controller",
+      "pos": "Mid Window"
      }
     ],
     "after": "Retake together, never one by one."
@@ -3631,7 +4461,11 @@
        "flash",
        "stun"
       ],
-      "do": "util into mid"
+      "do": "util into mid",
+      "pos": "Mid Bottom",
+      "at": [
+       "Mid Fountain"
+      ]
      },
      {
       "slot": "duelist",
@@ -3639,7 +4473,11 @@
        "entry",
        "flash"
       ],
-      "do": "take Fountain, one fight, fall back"
+      "do": "take Fountain, one fight, fall back",
+      "go": [
+       "Mid Bottom",
+       "Mid Fountain"
+      ]
      },
      {
       "slot": "fifth",
@@ -3649,14 +4487,19 @@
        "molly",
        "slow"
       ],
-      "do": "anchor A alone"
+      "do": "anchor A alone",
+      "pos": "A Site"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke mid for the fall back"
+      "do": "smoke mid for the fall back",
+      "pos": "Mid Window",
+      "at": [
+       "Mid Fountain"
+      ]
      },
      {
       "slot": "sentinel",
@@ -3665,7 +4508,8 @@
        "slow",
        "hold"
       ],
-      "do": "anchor B alone"
+      "do": "anchor B alone",
+      "pos": "B Site"
      }
     ],
     "after": "One fight, then back."
@@ -3684,7 +4528,11 @@
        "flash",
        "stun"
       ],
-      "do": "util into B Main"
+      "do": "util into B Main",
+      "pos": "B Site",
+      "at": [
+       "B Main"
+      ]
      },
      {
       "slot": "duelist",
@@ -3692,7 +4540,11 @@
        "entry",
        "flash"
       ],
-      "do": "swing B Main after the util"
+      "do": "swing B Main after the util",
+      "go": [
+       "B Site",
+       "B Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -3702,14 +4554,19 @@
        "molly",
        "slow"
       ],
-      "do": "trade, then fall back"
+      "do": "trade, then fall back",
+      "pos": "B Site"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke B Main for the fall back"
+      "do": "smoke B Main for the fall back",
+      "pos": "B Trophy",
+      "at": [
+       "B Main"
+      ]
      },
      {
       "slot": "sentinel",
@@ -3718,7 +4575,8 @@
        "slow",
        "hold"
       ],
-      "do": "anchor A alone"
+      "do": "anchor A alone",
+      "pos": "A Site"
      }
     ],
     "after": "One fight, then back."
@@ -3736,7 +4594,11 @@
        "slow",
        "hold"
       ],
-      "do": "A site, trap A Main"
+      "do": "A site, trap A Main",
+      "pos": "A Site",
+      "at": [
+       "A Main"
+      ]
      },
      {
       "slot": "fifth",
@@ -3746,14 +4608,16 @@
        "molly",
        "slow"
       ],
-      "do": "A Garden"
+      "do": "A Garden",
+      "pos": "A Garden"
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "mid, ready to smoke A"
+      "do": "mid, ready to smoke A",
+      "pos": "Mid Bend"
      },
      {
       "slot": "initiator",
@@ -3763,7 +4627,8 @@
        "flash",
        "stun"
       ],
-      "do": "B alone: info, fall back and call"
+      "do": "B alone: info, fall back and call",
+      "pos": "B Site"
      },
      {
       "slot": "duelist",
@@ -3771,7 +4636,8 @@
        "entry",
        "flash"
       ],
-      "do": "A Boxes"
+      "do": "A Cave",
+      "pos": "A Cave"
      }
     ],
     "after": "The B player calls and slows; drop the B Wall to slow them."
@@ -3789,7 +4655,8 @@
        "slow",
        "hold"
       ],
-      "do": "anchor A"
+      "do": "anchor A",
+      "pos": "A Site"
      },
      {
       "slot": "fifth",
@@ -3799,14 +4666,23 @@
        "molly",
        "slow"
       ],
-      "do": "Trophy / Gym side on the retake"
+      "do": "Trophy / Gym side on the retake",
+      "go": [
+       "B Gym",
+       "B Tower"
+      ]
      },
      {
       "slot": "controller",
       "use": [
        "smoke"
       ],
-      "do": "smoke B Main and Close Box for the retake"
+      "do": "smoke B Main and Close Box for the retake",
+      "pos": "B Trophy",
+      "at": [
+       "B Main",
+       "Close Box"
+      ]
      },
      {
       "slot": "initiator",
@@ -3816,7 +4692,8 @@
        "flash",
        "stun"
       ],
-      "do": "B: info only, fall back when they come"
+      "do": "B: info only, fall back when they come",
+      "pos": "B Trophy"
      },
      {
       "slot": "duelist",
@@ -3824,11 +4701,1193 @@
        "entry",
        "flash"
       ],
-      "do": "B Link: first in on the retake"
+      "do": "B Link: first in on the retake",
+      "go": [
+       "B Link",
+       "B Site"
+      ]
      }
     ],
     "after": "Retake together from two sides; flash in at the same time."
    }
   ]
+ },
+ "geo": {
+  "Haven": {
+   "spots": {
+    "A Garden": [
+     0.742,
+     0.41
+    ],
+    "A Link": [
+     0.29,
+     0.324
+    ],
+    "A Lobby": [
+     0.624,
+     0.385
+    ],
+    "A Long": [
+     0.576,
+     0.177
+    ],
+    "A Sewer": [
+     0.5,
+     0.384
+    ],
+    "A Site": [
+     0.402,
+     0.17
+    ],
+    "Attacker Side Spawn": [
+     0.895,
+     0.512
+    ],
+    "B Back": [
+     0.294,
+     0.495
+    ],
+    "B Site": [
+     0.401,
+     0.501
+    ],
+    "C Link": [
+     0.343,
+     0.649
+    ],
+    "C Lobby": [
+     0.664,
+     0.766
+    ],
+    "C Long": [
+     0.644,
+     0.894
+    ],
+    "C Garage": [
+     0.493,
+     0.629
+    ],
+    "C Window": [
+     0.419,
+     0.643
+    ],
+    "C Site": [
+     0.418,
+     0.821
+    ],
+    "C Cubby": [
+     0.601,
+     0.802
+    ],
+    "Defender Side Spawn": [
+     0.14,
+     0.422
+    ],
+    "Mid Doors": [
+     0.624,
+     0.631
+    ],
+    "Mid Courtyard": [
+     0.59,
+     0.506
+    ],
+    "Mid Window": [
+     0.676,
+     0.496
+    ],
+    "A Tower": [
+     0.308,
+     0.139
+    ],
+    "Heaven": [
+     0.308,
+     0.139
+    ],
+    "Hell": [
+     0.355,
+     0.215
+    ],
+    "Logs": [
+     0.47,
+     0.84
+    ],
+    "A Default": [
+     0.4,
+     0.16
+    ],
+    "C Default": [
+     0.37,
+     0.82
+    ],
+    "B Default": [
+     0.4,
+     0.5
+    ],
+    "Garage Window": [
+     0.419,
+     0.643
+    ],
+    "Short Exit": [
+     0.45,
+     0.26
+    ]
+   },
+   "routes": {
+    "aLong": [
+     "Attacker Side Spawn",
+     "A Garden",
+     [
+      0.68,
+      0.3
+     ],
+     "A Long",
+     [
+      0.46,
+      0.17
+     ]
+    ],
+    "aShort": [
+     "Attacker Side Spawn",
+     "A Lobby",
+     "A Sewer",
+     "Short Exit"
+    ],
+    "cLong": [
+     "Attacker Side Spawn",
+     [
+      0.76,
+      0.66
+     ],
+     "C Lobby",
+     "C Long",
+     [
+      0.5,
+      0.87
+     ],
+     "Logs"
+    ],
+    "garage": [
+     "Attacker Side Spawn",
+     [
+      0.74,
+      0.6
+     ],
+     "Mid Doors",
+     "C Garage"
+    ],
+    "garageC": [
+     "C Garage",
+     "C Window",
+     [
+      0.43,
+      0.76
+     ]
+    ],
+    "bMid": [
+     "Attacker Side Spawn",
+     "Mid Window",
+     "Mid Courtyard",
+     [
+      0.45,
+      0.5
+     ]
+    ]
+   },
+   "img": "https://media.valorant-api.com/maps/2bee0dc9-4ffe-519b-1cbd-7fbe763a6047/displayicon.png"
+  },
+  "Bind": {
+   "spots": {
+    "A Exit": [
+     0.924,
+     0.522
+    ],
+    "A Link": [
+     0.518,
+     0.592
+    ],
+    "A Lobby": [
+     0.763,
+     0.607
+    ],
+    "A Short": [
+     0.624,
+     0.497
+    ],
+    "A Site": [
+     0.734,
+     0.333
+    ],
+    "A Teleporter": [
+     0.606,
+     0.411
+    ],
+    "Attacker Side Spawn": [
+     0.582,
+     0.958
+    ],
+    "B Exit": [
+     0.473,
+     0.441
+    ],
+    "B Hall": [
+     0.285,
+     0.202
+    ],
+    "B Link": [
+     0.422,
+     0.592
+    ],
+    "B Fountain": [
+     0.259,
+     0.629
+    ],
+    "B Long": [
+     0.193,
+     0.515
+    ],
+    "B Short": [
+     0.397,
+     0.53
+    ],
+    "B Site": [
+     0.292,
+     0.312
+    ],
+    "B Teleporter": [
+     0.151,
+     0.435
+    ],
+    "B Window": [
+     0.323,
+     0.447
+    ],
+    "A Bath": [
+     0.839,
+     0.43
+    ],
+    "Attacker Side Cave": [
+     0.592,
+     0.736
+    ],
+    "A Cubby": [
+     0.587,
+     0.46
+    ],
+    "Defender Side Spawn": [
+     0.517,
+     0.104
+    ],
+    "B Elbow": [
+     0.158,
+     0.306
+    ],
+    "B Garden": [
+     0.247,
+     0.428
+    ],
+    "A Lamps": [
+     0.582,
+     0.339
+    ],
+    "A Tower": [
+     0.728,
+     0.208
+    ],
+    "Heaven": [
+     0.728,
+     0.208
+    ],
+    "U-Hall": [
+     0.62,
+     0.22
+    ],
+    "Truck": [
+     0.7,
+     0.31
+    ],
+    "Showers": [
+     0.839,
+     0.43
+    ],
+    "Hookah": [
+     0.35,
+     0.47
+    ],
+    "A Default": [
+     0.73,
+     0.33
+    ],
+    "B Default": [
+     0.29,
+     0.31
+    ],
+    "CT B": [
+     0.285,
+     0.202
+    ]
+   },
+   "routes": {
+    "showers": [
+     "Attacker Side Spawn",
+     [
+      0.66,
+      0.8
+     ],
+     "A Lobby",
+     "A Bath",
+     [
+      0.76,
+      0.36
+     ]
+    ],
+    "lamps": [
+     "Attacker Side Spawn",
+     [
+      0.6,
+      0.78
+     ],
+     "A Link",
+     "A Short",
+     "A Cubby",
+     "A Lamps",
+     [
+      0.68,
+      0.33
+     ]
+    ],
+    "hookah": [
+     "Attacker Side Spawn",
+     [
+      0.5,
+      0.7
+     ],
+     "B Link",
+     "B Short",
+     "Hookah",
+     "B Window",
+     [
+      0.3,
+      0.36
+     ]
+    ],
+    "bLong": [
+     "Attacker Side Spawn",
+     [
+      0.45,
+      0.72
+     ],
+     "B Fountain",
+     "B Long",
+     [
+      0.2,
+      0.4
+     ],
+     [
+      0.27,
+      0.33
+     ]
+    ]
+   },
+   "img": "https://media.valorant-api.com/maps/2c9d57ec-4431-9c5e-2939-8f9ef6dd5cba/displayicon.png"
+  },
+  "Lotus": {
+   "spots": {
+    "A Top": [
+     0.818,
+     0.251
+    ],
+    "A Drop": [
+     0.893,
+     0.233
+    ],
+    "A Site": [
+     0.855,
+     0.361
+    ],
+    "A Hut": [
+     0.855,
+     0.348
+    ],
+    "A Tree": [
+     0.855,
+     0.475
+    ],
+    "A Door": [
+     0.829,
+     0.514
+    ],
+    "A Main": [
+     0.754,
+     0.537
+    ],
+    "A Rubble": [
+     0.809,
+     0.601
+    ],
+    "A Root": [
+     0.692,
+     0.601
+    ],
+    "A Lobby": [
+     0.666,
+     0.724
+    ],
+    "C Lobby": [
+     0.341,
+     0.817
+    ],
+    "B Pillars": [
+     0.503,
+     0.661
+    ],
+    "B Main": [
+     0.451,
+     0.567
+    ],
+    "C Door": [
+     0.329,
+     0.571
+    ],
+    "B Site": [
+     0.503,
+     0.459
+    ],
+    "A Link": [
+     0.605,
+     0.485
+    ],
+    "B Upper": [
+     0.564,
+     0.365
+    ],
+    "C Waterfall": [
+     0.311,
+     0.434
+    ],
+    "C Link": [
+     0.356,
+     0.377
+    ],
+    "A Stairs": [
+     0.733,
+     0.323
+    ],
+    "C Mound": [
+     0.341,
+     0.64
+    ],
+    "C Main": [
+     0.228,
+     0.535
+    ],
+    "C Bend": [
+     0.075,
+     0.51
+    ],
+    "C Site": [
+     0.148,
+     0.437
+    ],
+    "C Hall": [
+     0.148,
+     0.349
+    ],
+    "C Gravel": [
+     0.329,
+     0.274
+    ],
+    "Defender Side Spawn": [
+     0.577,
+     0.22
+    ],
+    "Attacker Side Spawn": [
+     0.511,
+     0.817
+    ],
+    "A Default": [
+     0.855,
+     0.361
+    ],
+    "C Default": [
+     0.148,
+     0.437
+    ],
+    "B Default": [
+     0.503,
+     0.459
+    ],
+    "Tree": [
+     0.855,
+     0.475
+    ],
+    "Waterfall": [
+     0.311,
+     0.434
+    ]
+   },
+   "routes": {
+    "aMain": [
+     "Attacker Side Spawn",
+     "A Lobby",
+     "A Root",
+     "A Main",
+     [
+      0.84,
+      0.4
+     ]
+    ],
+    "cMain": [
+     "Attacker Side Spawn",
+     "C Lobby",
+     "C Mound",
+     "C Main",
+     [
+      0.15,
+      0.45
+     ]
+    ],
+    "bMain": [
+     "Attacker Side Spawn",
+     "B Pillars",
+     "B Main",
+     [
+      0.5,
+      0.47
+     ]
+    ],
+    "aLink": [
+     "B Main",
+     "B Site",
+     "A Link",
+     [
+      0.78,
+      0.47
+     ]
+    ]
+   },
+   "img": "https://media.valorant-api.com/maps/2fe4ed3a-450a-948b-6d6b-e89a78e680a9/displayicon.png"
+  },
+  "Sunset": {
+   "spots": {
+    "B Boba": [
+     0.126,
+     0.344
+    ],
+    "Mid Tiles": [
+     0.531,
+     0.656
+    ],
+    "B Market": [
+     0.235,
+     0.531
+    ],
+    "B Site": [
+     0.044,
+     0.562
+    ],
+    "B Main": [
+     0.059,
+     0.672
+    ],
+    "B Lobby": [
+     0.297,
+     0.781
+    ],
+    "Mid Bottom": [
+     0.342,
+     0.656
+    ],
+    "Mid Courtyard": [
+     0.406,
+     0.562
+    ],
+    "A Lobby": [
+     0.656,
+     0.656
+    ],
+    "A Main": [
+     0.672,
+     0.547
+    ],
+    "A Link": [
+     0.734,
+     0.344
+    ],
+    "A Site": [
+     0.75,
+     0.438
+    ],
+    "A Elbow": [
+     0.828,
+     0.5
+    ],
+    "A Alley": [
+     0.781,
+     0.25
+    ],
+    "Defender Side Spawn": [
+     0.345,
+     0.219
+    ],
+    "Mid Top": [
+     0.344,
+     0.36
+    ],
+    "Attacker Side Spawn": [
+     0.469,
+     0.986
+    ],
+    "A CT": [
+     0.781,
+     0.25
+    ],
+    "A Default": [
+     0.75,
+     0.438
+    ],
+    "B Default": [
+     0.044,
+     0.562
+    ],
+    "B CT": [
+     0.126,
+     0.344
+    ]
+   },
+   "routes": {
+    "aMain": [
+     "Attacker Side Spawn",
+     [
+      0.62,
+      0.86
+     ],
+     "A Lobby",
+     "A Main",
+     [
+      0.74,
+      0.44
+     ]
+    ],
+    "aLink": [
+     "Attacker Side Spawn",
+     "Mid Tiles",
+     "Mid Courtyard",
+     [
+      0.55,
+      0.33
+     ],
+     "A Link",
+     [
+      0.76,
+      0.4
+     ]
+    ],
+    "bMain": [
+     "Attacker Side Spawn",
+     "B Lobby",
+     [
+      0.2,
+      0.68
+     ],
+     "B Main",
+     [
+      0.06,
+      0.57
+     ]
+    ],
+    "mid": [
+     "Attacker Side Spawn",
+     "Mid Bottom",
+     "Mid Courtyard",
+     "Mid Top"
+    ],
+    "market": [
+     "Mid Courtyard",
+     "B Market",
+     [
+      0.1,
+      0.5
+     ]
+    ]
+   },
+   "img": "https://media.valorant-api.com/maps/92584fbe-486a-b1b2-9faa-39b0f486b498/displayicon.png"
+  },
+  "Abyss": {
+   "spots": {
+    "A Bridge": [
+     0.47,
+     0.038
+    ],
+    "A Link": [
+     0.302,
+     0.273
+    ],
+    "A Lobby": [
+     0.775,
+     0.237
+    ],
+    "A Main": [
+     0.634,
+     0.192
+    ],
+    "A Site": [
+     0.484,
+     0.152
+    ],
+    "Attacker Side Spawn": [
+     0.901,
+     0.423
+    ],
+    "A Tower": [
+     0.49,
+     0.255
+    ],
+    "Mid Bend": [
+     0.587,
+     0.638
+    ],
+    "B Link": [
+     0.31,
+     0.662
+    ],
+    "B Lobby": [
+     0.826,
+     0.796
+    ],
+    "B Main": [
+     0.624,
+     0.86
+    ],
+    "B Nest": [
+     0.674,
+     0.903
+    ],
+    "Mid Bottom": [
+     0.547,
+     0.532
+    ],
+    "B Site": [
+     0.405,
+     0.858
+    ],
+    "Mid Catwalk": [
+     0.543,
+     0.451
+    ],
+    "B Danger": [
+     0.557,
+     0.974
+    ],
+    "Defender Side Spawn": [
+     0.073,
+     0.423
+    ],
+    "Mid Library": [
+     0.451,
+     0.526
+    ],
+    "A Secret": [
+     0.188,
+     0.194
+    ],
+    "A Security": [
+     0.259,
+     0.103
+    ],
+    "Mid Top": [
+     0.308,
+     0.437
+    ],
+    "B Tower": [
+     0.297,
+     0.818
+    ],
+    "A Vent": [
+     0.474,
+     0.362
+    ],
+    "A Default": [
+     0.484,
+     0.152
+    ],
+    "B Default": [
+     0.405,
+     0.858
+    ]
+   },
+   "routes": {
+    "aMain": [
+     "Attacker Side Spawn",
+     "A Lobby",
+     "A Main",
+     [
+      0.5,
+      0.16
+     ]
+    ],
+    "bMain": [
+     "Attacker Side Spawn",
+     "B Lobby",
+     "B Main",
+     [
+      0.42,
+      0.85
+     ]
+    ],
+    "mid": [
+     "Attacker Side Spawn",
+     "Mid Bend",
+     "Mid Bottom",
+     "Mid Library",
+     "Mid Top"
+    ],
+    "midB": [
+     "Mid Top",
+     "B Link",
+     [
+      0.38,
+      0.82
+     ]
+    ],
+    "midA": [
+     "Mid Top",
+     "A Link",
+     [
+      0.45,
+      0.17
+     ]
+    ]
+   },
+   "img": "https://media.valorant-api.com/maps/224b0a95-48b9-f703-1bd8-67aca101a61f/displayicon.png"
+  },
+  "Corrode": {
+   "spots": {
+    "A Crane": [
+     0.243,
+     0.203
+    ],
+    "A Elbow": [
+     0.381,
+     0.109
+    ],
+    "A Link": [
+     0.453,
+     0.375
+    ],
+    "A Lobby": [
+     0.708,
+     0.197
+    ],
+    "A Main": [
+     0.612,
+     0.085
+    ],
+    "A Pocket": [
+     0.47,
+     0.109
+    ],
+    "A Site": [
+     0.398,
+     0.258
+    ],
+    "Attacker Side Spawn": [
+     0.923,
+     0.502
+    ],
+    "A Yard": [
+     0.47,
+     0.197
+    ],
+    "B Arch": [
+     0.218,
+     0.717
+    ],
+    "B Elbow": [
+     0.321,
+     0.891
+    ],
+    "B Link": [
+     0.398,
+     0.59
+    ],
+    "B Lobby": [
+     0.72,
+     0.617
+    ],
+    "B Main": [
+     0.579,
+     0.69
+    ],
+    "Mid Bottom": [
+     0.538,
+     0.491
+    ],
+    "B Site": [
+     0.444,
+     0.69
+    ],
+    "B Tower": [
+     0.321,
+     0.746
+    ],
+    "Defender Side Spawn": [
+     0.124,
+     0.499
+    ],
+    "Mid Stairs": [
+     0.423,
+     0.491
+    ],
+    "Mid Window": [
+     0.309,
+     0.491
+    ],
+    "Mid Top": [
+     0.398,
+     0.491
+    ],
+    "A CT": [
+     0.243,
+     0.203
+    ],
+    "A Default": [
+     0.398,
+     0.258
+    ],
+    "B Default": [
+     0.444,
+     0.69
+    ]
+   },
+   "routes": {
+    "aMain": [
+     "Attacker Side Spawn",
+     "A Lobby",
+     "A Main",
+     [
+      0.53,
+      0.16
+     ],
+     "A Yard",
+     [
+      0.4,
+      0.21
+     ]
+    ],
+    "aLink": [
+     "Attacker Side Spawn",
+     "Mid Bottom",
+     "Mid Stairs",
+     "A Link",
+     [
+      0.42,
+      0.28
+     ]
+    ],
+    "bMain": [
+     "Attacker Side Spawn",
+     "B Lobby",
+     "B Main",
+     [
+      0.42,
+      0.73
+     ]
+    ],
+    "bLink": [
+     "Attacker Side Spawn",
+     "Mid Bottom",
+     "Mid Top",
+     "B Link",
+     [
+      0.42,
+      0.68
+     ]
+    ],
+    "mid": [
+     "Attacker Side Spawn",
+     "Mid Bottom",
+     "Mid Stairs"
+    ]
+   },
+   "img": "https://media.valorant-api.com/maps/1c18ab1f-420d-0d8b-71d0-77ad3c439115/displayicon.png"
+  },
+  "Summit": {
+   "spots": {
+    "Mid Bottom": [
+     0.484,
+     0.416
+    ],
+    "Mid Top": [
+     0.537,
+     0.677
+    ],
+    "A Lobby": [
+     0.694,
+     0.741
+    ],
+    "A Main": [
+     0.694,
+     0.566
+    ],
+    "A Garden": [
+     0.792,
+     0.403
+    ],
+    "A Site": [
+     0.917,
+     0.403
+    ],
+    "A Art": [
+     0.792,
+     0.265
+    ],
+    "A Cave": [
+     0.957,
+     0.265
+    ],
+    "A Hall": [
+     0.692,
+     0.265
+    ],
+    "A Link": [
+     0.651,
+     0.36
+    ],
+    "B Lobby": [
+     0.289,
+     0.595
+    ],
+    "Defender Side Spawn": [
+     0.511,
+     0.073
+    ],
+    "Mid Window": [
+     0.484,
+     0.326
+    ],
+    "B Gym": [
+     0.28,
+     0.19
+    ],
+    "B Trophy": [
+     0.323,
+     0.298
+    ],
+    "B Tower": [
+     0.156,
+     0.216
+    ],
+    "B Drop": [
+     0.053,
+     0.24
+    ],
+    "B Site": [
+     0.151,
+     0.338
+    ],
+    "B Link": [
+     0.331,
+     0.416
+    ],
+    "Mid Fountain": [
+     0.511,
+     0.553
+    ],
+    "Mid Bend": [
+     0.636,
+     0.493
+    ],
+    "Mid Tiles": [
+     0.365,
+     0.607
+    ],
+    "B Main": [
+     0.186,
+     0.491
+    ],
+    "Attacker Side Spawn": [
+     0.48,
+     0.92
+    ],
+    "A CT": [
+     0.792,
+     0.265
+    ],
+    "A Default": [
+     0.917,
+     0.403
+    ],
+    "B Default": [
+     0.151,
+     0.338
+    ],
+    "Close Box": [
+     0.17,
+     0.3
+    ]
+   },
+   "routes": {
+    "aMain": [
+     "Attacker Side Spawn",
+     [
+      0.5,
+      0.77
+     ],
+     "A Lobby",
+     "A Main",
+     [
+      0.75,
+      0.5
+     ],
+     "A Garden",
+     [
+      0.9,
+      0.4
+     ]
+    ],
+    "aLink": [
+     "Attacker Side Spawn",
+     "Mid Top",
+     "Mid Fountain",
+     "Mid Bend",
+     "A Link",
+     [
+      0.8,
+      0.34
+     ]
+    ],
+    "bMain": [
+     "Attacker Side Spawn",
+     [
+      0.36,
+      0.8
+     ],
+     "Mid Tiles",
+     "B Lobby",
+     "B Main",
+     [
+      0.15,
+      0.34
+     ]
+    ],
+    "bLink": [
+     "Attacker Side Spawn",
+     "Mid Top",
+     "Mid Fountain",
+     "Mid Bottom",
+     "B Link",
+     [
+      0.2,
+      0.34
+     ]
+    ],
+    "mid": [
+     "Attacker Side Spawn",
+     "Mid Top",
+     "Mid Fountain"
+    ]
+   },
+   "img": "https://media.valorant-api.com/maps/756da597-416b-c0f2-f47b-afbdf28670bc/displayicon.png"
+  }
  }
 }
