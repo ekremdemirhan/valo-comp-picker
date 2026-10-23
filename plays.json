@@ -1,136 +1,5 @@
 {
- "_note": "Set plays, 5 attack and 5 defense per map; no lineups (util is thrown freehand). If you add one that needs a lineup, set \"lineup\": true. Attack plays list what the play needs (smoke spots, a flash, info, entry routes, flank watch, fake, lurk); defense plays list 5 positions with preferred roles plus util spots. The page hands each job to a player whose agent can do it: smokes are split between controllers, the trap goes to a sentinel, flashes and info to initiators. A job nobody's agent can do is skipped. Spots are 0-1 minimap coordinates.",
- "abilities": {
-  "Brimstone": {
-   "smoke": "Sky Smoke",
-   "molly": "Incendiary",
-   "buff": "Stim Beacon"
-  },
-  "Omen": {
-   "smoke": "Dark Cover",
-   "flash": "Paranoia"
-  },
-  "Astra": {
-   "smoke": "Nebula",
-   "stun": "Nova Pulse"
-  },
-  "Viper": {
-   "smoke": "Poison Cloud",
-   "wall": "Toxic Screen",
-   "molly": "Snake Bite"
-  },
-  "Harbor": {
-   "smoke": "Cove",
-   "wall": "High Tide"
-  },
-  "Clove": {
-   "smoke": "Ruse",
-   "molly": "Meddle"
-  },
-  "Miks": {
-   "smoke": "Waveform",
-   "stun": "M-pulse"
-  },
-  "Sova": {
-   "recon": "Recon Bolt",
-   "clear": "Owl Drone",
-   "molly": "Shock Bolt"
-  },
-  "Fade": {
-   "recon": "Haunt",
-   "clear": "Prowler",
-   "stun": "Seize"
-  },
-  "Skye": {
-   "flash": "Guiding Light",
-   "clear": "Trailblazer"
-  },
-  "Breach": {
-   "flash": "Flashpoint",
-   "stun": "Fault Line",
-   "molly": "Aftershock"
-  },
-  "KAY/O": {
-   "flash": "FLASH/drive",
-   "recon": "ZERO/point",
-   "molly": "FRAG/ment"
-  },
-  "Gekko": {
-   "flash": "Dizzy",
-   "clear": "Wingman",
-   "molly": "Mosh Pit"
-  },
-  "Tejo": {
-   "clear": "Stealth Drone",
-   "stun": "Special Delivery",
-   "molly": "Guided Salvo"
-  },
-  "Jett": {
-   "entry": "Tailwind",
-   "smoke2": "Cloudburst"
-  },
-  "Neon": {
-   "entry": "High Gear",
-   "stun": "Relay Bolt",
-   "wall": "Fast Lane"
-  },
-  "Phoenix": {
-   "entry": "Blaze",
-   "wall": "Blaze",
-   "flash": "Curveball",
-   "molly": "Hot Hands"
-  },
-  "Raze": {
-   "entry": "Blast Pack",
-   "clear": "Boom Bot",
-   "molly": "Paint Shells"
-  },
-  "Reyna": {
-   "entry": "Dismiss",
-   "flash": "Leer"
-  },
-  "Yoru": {
-   "entry": "Gatecrash",
-   "flash": "Blindside"
-  },
-  "Iso": {
-   "entry": "Double Tap",
-   "wall": "Contingency"
-  },
-  "Waylay": {
-   "entry": "Lightspeed",
-   "slow": "Saturate"
-  },
-  "Killjoy": {
-   "trip": "Alarmbot",
-   "molly": "Nanoswarm"
-  },
-  "Cypher": {
-   "trip": "Trapwire",
-   "smoke2": "Cyber Cage",
-   "recon": "Spycam"
-  },
-  "Chamber": {
-   "trip": "Trademark"
-  },
-  "Sage": {
-   "slow": "Slow Orb",
-   "wall": "Barrier Orb"
-  },
-  "Deadlock": {
-   "trip": "Sonic Sensor",
-   "slow": "GravNet",
-   "wall": "Barrier Mesh"
-  },
-  "Vyse": {
-   "trip": "Razorvine",
-   "flash": "Arc Rose",
-   "wall": "Shear"
-  },
-  "Veto": {
-   "trip": "Chokehold"
-  }
- },
+ "_note": "Agent-agnostic set plays: 5 attack and 5 defense per map, no lineups. Attack plays list where to reveal (info), smoke, flash, the entry routes (split 3/2 when there are two), a flank spot to trap or watch, and optional fake/lurk spots. Defense plays list 5 positions (pref = which role usually plays there) plus spots to reveal, trap, flash and smoke. Who throws what is up to the team. Spots are callouts in 0-1 minimap coordinates; routes are lists of spots. If you add a play that needs a lineup, set \"lineup\": true.",
  "maps": {
   "Haven": [
    {
@@ -158,8 +27,7 @@
     "idea": "Five through C Long with C Link and the Garage door smoked off.",
     "smoke": [
      "C Link",
-     "C Window",
-     "Logs"
+     "C Window"
     ],
     "entries": [
      "cLong"
@@ -4028,16 +3896,5 @@
     "A Hall": "A Hall"
    }
   }
- },
- "smokes": {
-  "Brimstone": 3,
-  "Omen": 2,
-  "Astra": 3,
-  "Viper": 1,
-  "Harbor": 1,
-  "Clove": 2,
-  "Miks": 2,
-  "Jett": 1,
-  "Cypher": 1
  }
 }

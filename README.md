@@ -45,17 +45,13 @@ that agent and that map, so a short lucky run doesn't dominate. An agent needs 6
 second-best comp are usually ~0.4 apart; the best beats a typical valid comp for the same five by ~5.7. It ranks
 comps; it isn't a win probability.
 
-## Plays for the comp
+## Plays for each map
 
-Under the cards there's a **Plays for this comp** list: 5 attack plays and 5 defense setups for every map in the current
-pool (Abyss, Bind, Corrode, Haven, Lotus, Summit, Sunset). None needs a lineup. Each play has a short **call word**
-(e.g. `A SPLIT`, `C GO`) so the IGL can shout it mid-match, and a small map showing where the util lands, who goes
-where, and where everyone ends up.
-
-A play lists what it needs (smokes, a flash for the entry, info, entry routes, someone on the flank) and each job goes
-to a player whose agent can actually do it: smokes are split between the controllers (two controllers share them),
-traps go to the sentinel, flashes and recon to initiators, the duelist with a dash goes first. If nobody in the comp
-can do a job (say, no trap agent), that job is quietly skipped or turned into "watch the flank".
+Under the cards there's a **Plays** list: 5 attack plays and 5 defense setups for every map in the current pool
+(Abyss, Bind, Corrode, Haven, Lotus, Summit, Sunset). They don't depend on agents: each play has a short **call word**
+(e.g. `A SPLIT`, `C GO`) and a small map showing where to **reveal**, **smoke** and **flash**, which way the team goes in
+(and how many each way), and where to trap or watch the flank. On defense it shows the 5 positions (with the role that
+usually plays each) and where to reveal, trap, flash and smoke. Who throws what is up to you. No lineups needed.
 
 The plays live in `plays.json`; edit callouts or add your own there. If you add one that needs a lineup, set
 `"lineup": true` and its name gets "(lineup)" on the page.
