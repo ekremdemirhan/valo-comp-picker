@@ -527,46 +527,183 @@ def load_plays(path=None):
     return {"abilities": {}, "maps": {}}
 
 
-SLOT_ROLE = {"controller": "Controller", "initiator": "Initiator", "duelist": "Duelist", "sentinel": "Sentinel"}
+ROLE_RANK = {"Duelist": 0, "Initiator": 1, "Controller": 2, "Sentinel": 3}
 
 
-def assign_slots(picks):
-    """picks: [(player, agent, role)] -> {slot: (player, agent)}. One player per role; whoever is left over covers a
-    role nobody plays, then the last one is 'fifth'."""
-    slots, left = {}, list(picks)
-    for slot, role in SLOT_ROLE.items():
-        hit = next((x for x in left if x[2] == role), None)
-        if hit:
-            slots[slot] = hit[:2]
-            left.remove(hit)
-    for slot in SLOT_ROLE:
-        if slot not in slots and left:
-            slots[slot] = left.pop(0)[:2]
-    if left:
-        slots["fifth"] = left.pop(0)[:2]
-    return slots
+def plan_play(PL, map_name, pl, picks):
+    """Python twin of planPlay() in the page: hands each job in a play to a player whose agent can do it.
+    picks: [(player, agent, role)]."""
+    AB, G = PL.get("abilities", {}), PL.get("geo", {}).get(map_name, {})
+    labels, names, spots = G.get("labels", {}), G.get("names", {}), G.get("spots", {})
+
+    def nm(s):
+        return names.get(s) or (s[:-8] + " site" if s.endswith(" Default") else s)
+
+    ps = [{"p": p, "agent": a, "role": r, "parts": [], "marks": [], "pos": None, "go": None, "kit": AB.get(a, {})}
+          for p, a, r in sorted(picks, key=lambda x: ROLE_RANK.get(x[2], 9))]
+
+    def has(x, kinds):
+        for k in kinds:
+            if x["kit"].get(k):
+                return k, x["kit"][k]
+        return None
+
+    def util(x, kinds, text, at, kind=None):
+        h = has(x, kinds)
+        if not h:
+            return False
+        x["parts"].append({"ab": h[1], "text": text})
+        for a in (at if isinstance(at, list) else [at]):
+            x["marks"].append({"kind": kind or h[0], "at": a})
+        return True
+
+    def pick(cands):
+        return next((c for c in cands if c), None)
+
+    def by_kinds(kinds, not_=()):
+        return [x for x in ps if x not in not_ and has(x, kinds)]
+
+    def smoke_job(targets, when):
+        if not targets:
+            return
+        owners, tg = by_kinds(["smoke"]), targets
+        if not owners:
+            owners, tg = by_kinds(["smoke2"])[:1], targets[:1]
+        if not owners:
+            return
+        cap = lambda x: PL.get("smokes", {}).get(x["agent"], 1)
+        share = [[] for _ in owners]
+        i = 0
+        for t in tg:
+            for _ in range(len(owners)):
+                j = i % len(owners)
+                if len(share[j]) < cap(owners[j]):
+                    share[j].append(t)
+                    i += 1
+                    break
+                i += 1
+        for j, x in enumerate(owners):
+            if share[j]:
+                util(x, ["smoke", "smoke2"], " + ".join(nm(t) for t in share[j]) + when, share[j], "smoke")
+
+    lead = None
+    if pl["side"] == "Attack":
+        routes = pl.get("entries", [])
+        lab = lambda r: labels.get(r, r)
+        duel = sorted([x for x in ps if x["role"] == "Duelist"], key=lambda x: 0 if has(x, ["entry"]) else 1)
+        order = duel + [x for x in ps if x["role"] == "Initiator"] + [x for x in ps if x["role"] == "Sentinel"] + \
+            [x for x in ps if x["role"] == "Controller"]
+        lead = order[0]
+        lurker = faker = None
+        if pl.get("lurk"):
+            lurker = pick([c for c in [next((x for x in ps if x["role"] == "Sentinel"), None),
+                                       next((x for x in ps if x["role"] == "Controller"), None) if len(by_kinds(["smoke"])) > 1 else None,
+                                       *[x for x in reversed(order) if x["role"] != "Controller" and not has(x, ["flash", "stun"])]]
+                           if c and c is not lead]) or \
+                pick([x for x in reversed(order) if x is not lead and x["role"] != "Controller"])
+        if pl.get("fake"):
+            ok = lambda x: x is not lead and x is not lurker
+            faker = pick([*[x for x in ps if ok(x) and x["role"] == "Initiator" and len(by_kinds(["flash", "stun", "recon", "clear"])) > 1],
+                          *[x for x in ps if ok(x) and x["role"] == "Sentinel"], *[x for x in ps if ok(x) and x["role"] != "Controller"]])
+        smoke_job(pl.get("smoke"), "")
+        groups = [[] for _ in routes]
+        if routes:
+            groups[0].append(lead)
+            rest = [x for x in order if x is not lead and x is not lurker and x is not faker]
+            if len(routes) > 1:
+                second = pick([next((x for x in rest if x["role"] == "Duelist"), None), next((x for x in rest if x["role"] == "Sentinel"), None),
+                               next((x for x in rest if x["role"] == "Initiator"), None), rest[0] if rest else None])
+                if second:
+                    groups[1].append(second)
+                    rest.remove(second)
+            for x in rest:
+                groups[1 if x["role"] == "Sentinel" and len(groups) > 1 and len(groups[1]) < 2 else 0].append(x)
+        if faker and not util(faker, ["flash", "stun", "recon", "clear", "molly"], f"into {nm(pl['fake'])} to sell the fake, then rotate", pl["fake"]):
+            faker["parts"].append({"ab": None, "text": f"make noise at {nm(pl['fake'])} to sell the fake, then rotate"})
+        if pl.get("flash"):
+            g0, fs = (groups[0] if groups else []), by_kinds(["flash", "stun"])
+            fl = pick([*[x for x in fs if x["role"] == "Initiator" and x is not faker and x in g0],
+                       *[x for x in fs if x is not lead and x is not faker and x is not lurker and x in g0 and x["role"] != "Controller"],
+                       lead if has(lead, ["flash", "stun"]) else None,
+                       *[x for x in fs if x["role"] == "Initiator" and x is not faker],
+                       *[x for x in fs if x is not lead and x is not faker and x is not lurker and x["role"] != "Controller"],
+                       lead if has(lead, ["flash", "stun"]) else None, *[x for x in fs if x is not faker and x is not lurker]])
+            if fl:
+                util(fl, ["flash", "stun"], f"onto {nm(pl['flash'])}, then swing off it" if fl is lead else f"onto {nm(pl['flash'])} for {{lead}}", pl["flash"])
+        if pl.get("info"):
+            own = [x for x in by_kinds(["recon", "clear"]) if x is not faker and x is not lurker]
+            ini = [x for x in own if x["role"] == "Initiator"]
+            inf = pick([next((x for x in ini if not x["parts"]), None), ini[0] if ini else None,
+                        next((x for x in own if not x["parts"]), None), own[0] if own else None])
+            if inf:
+                util(inf, ["recon", "clear"], f"{nm(pl['info'])} before anyone goes in", pl["info"], "info")
+        if pl.get("watch"):
+            tr = pick([x for x in by_kinds(["trip"]) if x is not lurker and x is not faker])
+            if tr:
+                util(tr, ["trip"], f"{nm(pl['watch'])} so nobody flanks", pl["watch"], "trap")
+            else:
+                w = pick([next((x for x in ps if x["role"] == "Sentinel" and x is not lurker), None),
+                          next((x for x in reversed(groups[0] if groups else []) if x is not lead), None)])
+                if w:
+                    w["parts"].append({"ab": None, "text": f"last in: keep an eye on {nm(pl['watch'])} for flankers"})
+                    w["marks"].append({"kind": "watch", "at": pl["watch"]})
+        for gi, g in enumerate(groups):
+            for k, x in enumerate(g):
+                x["go"] = routes[gi]
+                e = has(x, ["entry"])
+                if k == 0:
+                    x["parts"].append({"ab": e[1] if e else None, "text": f"first in through {lab(routes[gi])}" if gi == 0
+                                       else f"first in through {lab(routes[gi])}, same time as {{lead}}"})
+                else:
+                    x["parts"].append({"ab": None, "text": f"follow through {lab(routes[gi])} after your smokes" if x["role"] == "Controller"
+                                       else f"through {lab(routes[gi])} right behind, trade the entry"})
+        if lurker:
+            lurker["pos"] = pl["lurk"]
+            lurker["parts"].append({"ab": None, "text": f"lurk {nm(pl['lurk'])}: call rotations, catch the flank"})
+        if faker:
+            faker["go"] = routes[0] if routes else None
+    else:
+        free = list(ps)
+        P = lambda v: v if isinstance(v, list) else spots.get(v)
+
+        def dist(a, b):
+            p, q = P(a), P(b)
+            return math.hypot(p[0] - q[0], p[1] - q[1]) if p and q else 9
+
+        def near(cands, spot):
+            return min(cands, key=lambda x: dist(x["pos"], spot), default=None)
+
+        near_info = lambda q: 0 if pl.get("info") and "Initiator" in q.get("pref", []) and dist(q["at"], pl["info"]) < .3 else 1
+        slots = sorted(enumerate(pl.get("pos", [])), key=lambda t: (len(t[1].get("pref", [])), near_info(t[1]), t[0]))
+        for _, q in slots:
+            x = pick([*[next((y for y in free if y["role"] == r), None) for r in q.get("pref", [])], free[0] if free else None])
+            if not x:
+                continue
+            free.remove(x)
+            x["pos"], x["go"] = q["at"], q.get("go")
+            x["parts"].append({"ab": None, "text": q["job"]})
+        smoke_job(pl.get("smoke"), " when they commit")
+        trippers = [x for x in by_kinds(["trip", "slow"]) if x["role"] == "Sentinel" or has(x, ["trip"])]
+        for t in pl.get("trap", []):
+            x = near(trippers, t)
+            if x and dist(x["pos"], t) < .35:
+                util(x, ["trip", "slow"], nm(t), t, "trap")
+        if pl.get("info"):
+            inf = near(by_kinds(["recon", "clear"]), pl["info"])
+            if inf and dist(inf["pos"], pl["info"]) < .4:
+                util(inf, ["recon", "clear"], f"{nm(pl['info'])} early", pl["info"], "info")
+        if pl.get("flash"):
+            fs = by_kinds(["flash", "stun"])
+            fl = near([x for x in fs if x["role"] != "Controller" or not any(y["role"] != "Controller" for y in fs)], pl["flash"])
+            if fl:
+                util(fl, ["flash", "stun"], f"onto {nm(pl['flash'])}", pl["flash"])
+    return {"name": pl["name"] + (" (lineup)" if pl.get("lineup") else ""), "side": pl["side"], "call": pl["call"], "idea": pl["idea"],
+            "after": pl.get("after", ""), "lead": lead["p"] if lead else None,
+            "steps": [{k: x[k] for k in ("p", "agent", "role", "parts", "marks", "pos", "go")} for x in ps]}
 
 
 def plays_for(plays, map_name, picks):
-    """The map's plays with each step given to a player: [{name, side, call, idea, after, steps: [{player, agent,
-    ability, do, missing}]}]."""
-    slots, ab = assign_slots(picks), plays.get("abilities", {})
-    out = []
-    for pl in plays.get("maps", {}).get(map_name, []):
-        steps = []
-        for st in pl["steps"]:
-            if st["slot"] not in slots:
-                continue
-            p, agent = slots[st["slot"]]
-            have = ab.get(agent, {})
-            ability = next((have[k] for k in st.get("use", []) if k in have), None)
-            steps.append({"player": p, "agent": agent, "ability": ability, "do": st["do"],
-                          "missing": None if ability or not st.get("use") else st["use"][0]})
-        row = {k: pl.get(k, "") for k in ("name", "side", "call", "idea", "after")}
-        if pl.get("lineup"):
-            row["name"] += " (lineup)"
-        out.append({**row, "steps": steps})
-    return out
+    return [plan_play(plays, map_name, pl, picks) for pl in plays.get("maps", {}).get(map_name, [])]
 
 
 def play_lines(plays, md):
@@ -577,10 +714,10 @@ def play_lines(plays, md):
     for pl in plays:
         head = f"{pl['side'].upper()} · \"{pl['call']}\" · {pl['name']}"
         out += ([f"**{head}**: {pl['idea']}", ""] if md else [f"\n  {head}", f"    {pl['idea']}"])
+        lead = short(pl["lead"]) if pl["lead"] else "the entry"
         for i, s in enumerate(pl["steps"], 1):
-            how = f" [{s['ability']}]" if s["ability"] else ""
-            miss = f" (no {s['missing']} on {s['agent']}; skip it or improvise)" if s["missing"] else ""
-            line = f"{short(s['player'])} ({s['agent']}): {s['do']}{how}{miss}"
+            jobs = "; ".join((f"{x['ab']}: " if x["ab"] else "") + x["text"].replace("{lead}", lead) for x in s["parts"])
+            line = f"{short(s['player'] if 'player' in s else s['p'])} ({s['agent']}): {jobs}"
             out.append(f"{i}. {line}" if md else f"    {i}. {line}")
         if pl["after"]:
             out += (["", f"_After: {pl['after']}_", ""] if md else [f"    After: {pl['after']}"])
@@ -1032,7 +1169,7 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .legend li{display:grid;grid-template-columns:auto auto 1fr;gap:8px;align-items:start}
 .legend .nb{width:20px;height:20px;border-radius:50%;color:#fff;font:700 12px/20px var(--body);text-align:center;margin-top:2px}
 .legend .ai.xs{width:24px;height:24px;border-radius:6px}
-.legend .do{font-size:13px;color:var(--mut)}
+.legend .do{font-size:13px;color:var(--fg);margin-top:3px}.legend .ag{font-size:12px;color:var(--mut)}
 .play .miss{color:var(--mut);font-size:12px}
 .play .after{margin:6px 12px 12px;padding:8px 10px;border-left:3px solid var(--accent);background:var(--soft);font-size:13px;border-radius:0 6px 6px 0}
 .procomp .match{font:500 12px var(--mono);color:var(--mut);margin-left:auto}
@@ -1286,29 +1423,119 @@ function structInfo(m, key) {
   return {share, allowed: share >= MIN_STRUCT_SHARE, bonus: share > 0 ? Math.max(-8, 4 * Math.log(share / (top / mm.n))) : -10};
 }
 const PLAYS = DATA.plays || {abilities: {}, maps: {}};
-const SLOT_ROLE = {controller: "Controller", initiator: "Initiator", duelist: "Duelist", sentinel: "Sentinel"};
-// one player per role job; leftovers cover a role nobody plays, the last one is the "fifth"
-function assignSlots(picks) {
-  const slots = {}, left = [...picks];
-  for (const [slot, role] of Object.entries(SLOT_ROLE)) {
-    const i = left.findIndex(x => x.o.role === role);
-    if (i >= 0) slots[slot] = left.splice(i, 1)[0];
+// PLANNER START
+// Hands each job in a play to a player whose agent can actually do it.
+const ROLE_RANK = {Duelist: 0, Initiator: 1, Controller: 2, Sentinel: 3};
+function planPlay(PL, m, pl, picks) {
+  const AB = PL.abilities || {}, G = (PL.geo || {})[m] || {}, labels = G.labels || {}, names = G.names || {};
+  const nm = s => names[s] || (/ Default$/.test(s) ? s.replace(/ Default$/, " site") : s);
+  const ps = [...picks].sort((a, b) => (ROLE_RANK[a.o.role] ?? 9) - (ROLE_RANK[b.o.role] ?? 9))
+    .map(x => ({p: x.p, agent: x.o.agent, role: x.o.role, parts: [], marks: [], pos: null, go: null, kit: AB[x.o.agent] || {}}));
+  const has = (x, kinds) => { for (const k of kinds) if (x.kit[k]) return [k, x.kit[k]]; return null; };
+  const util = (x, kinds, text, at, kind) => { const h = has(x, kinds); if (!h) return false; x.parts.push({ab: h[1], text}); for (const a of [].concat(at)) x.marks.push({kind: kind || h[0], at: a}); return true; };
+  const pick = (cands) => cands.find(Boolean) || null;
+  const byKinds = (kinds, not = []) => ps.filter(x => !not.includes(x) && has(x, kinds));
+  // smokes: split between controllers; with no controller, one Cloudburst / Cyber Cage covers the most important one
+  const smokeJob = (targets, when) => {
+    if (!targets || !targets.length) return;
+    let owners = byKinds(["smoke"]);
+    let tg = targets;
+    if (!owners.length) { owners = byKinds(["smoke2"]).slice(0, 1); tg = targets.slice(0, 1); }
+    if (!owners.length) return;
+    const cap = x => (PL.smokes || {})[x.agent] || 1, share = owners.map(() => []);
+    let i = 0;
+    for (const t of tg) {  // round-robin, skipping anyone out of smokes
+      for (let k = 0; k < owners.length; k++, i++) { const j = i % owners.length; if (share[j].length < cap(owners[j])) { share[j].push(t); i++; break; } }
+    }
+    owners.forEach((x, j) => share[j].length && util(x, ["smoke", "smoke2"], `${share[j].map(nm).join(" + ")}${when}`, share[j], "smoke"));
+  };
+  if (pl.side === "Attack") {
+    const routes = pl.entries || [], lab = r => labels[r] || r;
+    const duel = ps.filter(x => x.role === "Duelist").sort((a, b) => (has(b, ["entry"]) ? 1 : 0) - (has(a, ["entry"]) ? 1 : 0));
+    const order = [...duel, ...ps.filter(x => x.role === "Initiator"), ...ps.filter(x => x.role === "Sentinel"), ...ps.filter(x => x.role === "Controller")];
+    const lead = order[0];
+    // side jobs first, so they're not also on the entry
+    let lurker = null, faker = null, watcher = null;
+    if (pl.lurk) lurker = pick([ps.find(x => x.role === "Sentinel"), byKinds(["smoke"]).length > 1 ? ps.find(x => x.role === "Controller") : null,
+      ...[...order].reverse().filter(x => x.role !== "Controller" && !has(x, ["flash", "stun"]))].filter(x => x && x !== lead)) ||
+      pick([...order].reverse().filter(x => x !== lead && x.role !== "Controller"));
+    if (pl.fake) {
+      faker = pick([...ps.filter(x => x !== lead && x !== lurker && x.role === "Initiator" && byKinds(["flash", "stun", "recon", "clear"]).length > 1),
+        ...ps.filter(x => x !== lead && x !== lurker && x.role === "Sentinel"), ...ps.filter(x => x !== lead && x !== lurker && x.role !== "Controller")]);
+    }
+    smokeJob(pl.smoke, "");
+    // groups: lead on route 0; the next duelist (or next fragger) opens route 1
+    const groups = routes.map(() => []);
+    if (routes.length) {
+      groups[0].push(lead);
+      const rest = order.filter(x => x !== lead && x !== lurker && x !== faker);
+      if (routes.length > 1) {
+        const second = pick([rest.find(x => x.role === "Duelist"), rest.find(x => x.role === "Sentinel"), rest.find(x => x.role === "Initiator"), rest[0]]);
+        if (second) { groups[1].push(second); rest.splice(rest.indexOf(second), 1); }
+      }
+      rest.forEach(x => groups[x.role === "Sentinel" && groups.length > 1 && groups[1].length < 2 ? 1 : 0].push(x));
+    }
+    if (faker) util(faker, ["flash", "stun", "recon", "clear", "molly"], `into ${nm(pl.fake)} to sell the fake, then rotate`, pl.fake) ||
+      faker.parts.push({ab: null, text: `make noise at ${nm(pl.fake)} to sell the fake, then rotate`});
+    // flash for the lead: an initiator if possible, otherwise the lead flashes for himself
+    if (pl.flash) {
+      const g0 = groups[0] || [];
+      const fl = pick([...byKinds(["flash", "stun"]).filter(x => x.role === "Initiator" && x !== faker && g0.includes(x)),
+        ...byKinds(["flash", "stun"]).filter(x => x !== lead && x !== faker && x !== lurker && g0.includes(x) && x.role !== "Controller"),
+        has(lead, ["flash", "stun"]) ? lead : null,
+        ...byKinds(["flash", "stun"]).filter(x => x.role === "Initiator" && x !== faker),
+        ...byKinds(["flash", "stun"]).filter(x => x !== lead && x !== faker && x !== lurker && x.role !== "Controller"),
+        has(lead, ["flash", "stun"]) ? lead : null, ...byKinds(["flash", "stun"]).filter(x => x !== faker && x !== lurker)]);
+      if (fl) util(fl, ["flash", "stun"], fl === lead ? `onto ${nm(pl.flash)}, then swing off it` : `onto ${nm(pl.flash)} for {lead}`, pl.flash);
+    }
+    if (pl.info) {
+      const own = byKinds(["recon", "clear"]).filter(x => x !== faker && x !== lurker);
+      const ini = own.filter(x => x.role === "Initiator");
+      const inf = pick([ini.find(x => !x.parts.length), ini[0], own.find(x => !x.parts.length), own[0]]);
+      if (inf) util(inf, ["recon", "clear"], `${nm(pl.info)} before anyone goes in`, pl.info, "info");
+    }
+    if (pl.watch) {
+      const tr = pick(byKinds(["trip"]).filter(x => x !== lurker && x !== faker));
+      if (tr) util(tr, ["trip"], `${nm(pl.watch)} so nobody flanks`, pl.watch, "trap");
+      else { watcher = pick([ps.find(x => x.role === "Sentinel" && x !== lurker), [...(groups[0] || [])].reverse().find(x => x !== lead)]);
+        if (watcher) { watcher.parts.push({ab: null, text: `last in: keep an eye on ${nm(pl.watch)} for flankers`}); watcher.marks.push({kind: "watch", at: pl.watch}); } }
+    }
+    groups.forEach((g, gi) => g.forEach((x, k) => {
+      x.go = routes[gi];
+      const e = has(x, ["entry"]);
+      if (k === 0) x.parts.push({ab: e ? e[1] : null, text: gi === 0 ? `first in through ${lab(routes[gi])}` : `first in through ${lab(routes[gi])}, same time as {lead}`});
+      else x.parts.push({ab: null, text: x.role === "Controller" ? `follow through ${lab(routes[gi])} after your smokes` : `through ${lab(routes[gi])} right behind, trade the entry`});
+    }));
+    if (lurker) { lurker.pos = pl.lurk; lurker.parts.push({ab: null, text: `lurk ${nm(pl.lurk)}: call rotations, catch the flank`}); }
+    if (faker) faker.go = routes[0];
+    ps.lead = lead;
+  } else {
+    const free = [...ps], P = v => Array.isArray(v) ? v : (G.spots || {})[v];
+    const dist = (a, b) => { const p = P(a), q = P(b); return p && q ? Math.hypot(p[0] - q[0], p[1] - q[1]) : 9; };
+    const near = (cands, spot) => [...cands].sort((a, b) => dist(a.pos, spot) - dist(b.pos, spot))[0] || null;
+    // the most specific spots get their player first (a lone "Sentinel" anchor before a "Sentinel or Initiator" spot)
+    const nearInfo = q => pl.info && (q.pref || []).includes("Initiator") && dist(q.at, pl.info) < .3 ? 0 : 1;
+    const slots = (pl.pos || []).map((q, i) => ({q, i})).sort((a, b) => (a.q.pref || []).length - (b.q.pref || []).length || nearInfo(a.q) - nearInfo(b.q) || a.i - b.i);
+    for (const {q} of slots) {
+      const x = pick([...(q.pref || []).map(r => free.find(y => y.role === r)), free[0]]);
+      if (!x) continue;
+      free.splice(free.indexOf(x), 1);
+      x.pos = q.at; x.go = q.go || null; x.parts.push({ab: null, text: q.job});
+    }
+    smokeJob(pl.smoke, " when they commit");
+    // traps, info and flashes go to whoever stands closest; a trap far from its owner is skipped
+    const trippers = byKinds(["trip", "slow"]).filter(x => x.role === "Sentinel" || has(x, ["trip"]));
+    (pl.trap || []).forEach(t => { const x = near(trippers, t); if (x && dist(x.pos, t) < .35) util(x, ["trip", "slow"], nm(t), t, "trap"); });
+    if (pl.info) { const inf = near(byKinds(["recon", "clear"]), pl.info); if (inf && dist(inf.pos, pl.info) < .4) util(inf, ["recon", "clear"], `${nm(pl.info)} early`, pl.info, "info"); }
+    if (pl.flash) { const fl = near(byKinds(["flash", "stun"]).filter(x => x.role !== "Controller" || !byKinds(["flash", "stun"]).some(y => y.role !== "Controller")), pl.flash); if (fl) util(fl, ["flash", "stun"], `onto ${nm(pl.flash)}`, pl.flash); }
   }
-  for (const slot of Object.keys(SLOT_ROLE)) if (!slots[slot] && left.length) slots[slot] = left.shift();
-  if (left.length) slots.fifth = left.shift();
-  return slots;
+  return {name: pl.name + (pl.lineup ? " (lineup)" : ""), side: pl.side, call: pl.call, idea: pl.idea, after: pl.after || "", lead: ps.lead ? ps.lead.p : null,
+    steps: ps.map(x => ({p: x.p, agent: x.agent, role: x.role, parts: x.parts, marks: x.marks, pos: x.pos, go: x.go}))};
 }
-function playsFor(m, picks) {
-  const slots = assignSlots(picks), ab = PLAYS.abilities || {};
-  return ((PLAYS.maps || {})[m] || []).map(pl => ({...pl, name: pl.name + (pl.lineup ? " (lineup)" : ""), steps: pl.steps.filter(st => slots[st.slot]).map(st => {
-    const {p, o} = slots[st.slot], have = ab[o.agent] || {};
-    const k = (st.use || []).find(k => have[k]);
-    return {p, agent: o.agent, role: o.role, kind: k || (st.use || [])[0] || null, ability: k ? have[k] : null, do: st.do,
-      missing: !k && (st.use || []).length ? st.use[0] : null, at: st.at || [], pos: st.pos || null, go: st.go || null};
-  })}));
-}
+// PLANNER END
+function playsFor(m, picks) { return ((PLAYS.maps || {})[m] || []).map(pl => planPlay(PLAYS, m, pl, picks)); }
 const ROLE_COL = {Controller: "var(--ctrl)", Initiator: "var(--init)", Duelist: "var(--duel)", Sentinel: "var(--sent)"};
-const KIND = {smoke: "smoke", wall: "smoke", flash: "flash", stun: "flash", recon: "info", clear: "info", trip: "trap", slow: "trap", hold: "trap", molly: "molly", entry: "info", buff: "info"};
+const KIND = {smoke: "smoke", smoke2: "smoke", watch: "info", wall: "smoke", flash: "flash", stun: "flash", recon: "info", clear: "info", trip: "trap", slow: "trap", hold: "trap", molly: "molly", entry: "info", buff: "info"};
 let mapSeq = 0;
 // small minimap: util where it lands, arrows for who moves where, agent icon where each player ends up
 function playMap(m, pl) {
@@ -1319,7 +1546,7 @@ function playMap(m, pl) {
   const id = "pm" + (++mapSeq);
   // zoom to the part of the map this play uses
   const used = [];
-  pl.steps.forEach(s => { used.push(...route(s.go)); s.at.forEach(a => pt(a) && used.push(pt(a))); if (s.pos && pt(s.pos)) used.push(pt(s.pos)); });
+  pl.steps.forEach(s => { used.push(...route(s.go)); s.marks.forEach(k => pt(k.at) && used.push(pt(k.at))); if (s.pos && pt(s.pos)) used.push(pt(s.pos)); });
   let x0 = 0, y0 = 0, w = 1;
   if (used.length) {
     const xs = used.map(p => p[0]), ys = used.map(p => p[1]);
@@ -1337,27 +1564,43 @@ function playMap(m, pl) {
       (u ? `<image href="${u}" x="${x - .033 * z}" y="${y - .033 * z}" width="${.066 * z}" height="${.066 * z}" clip-path="url(#${id}c${i})"/><clipPath id="${id}c${i}"><circle cx="${x}" cy="${y}" r="${.032 * z}"/></clipPath>` : "") +
       badge(x + .034 * z, y - .03 * z, i, col) + `</g>`;
   };
-  pl.steps.forEach((s, k) => {
-    const i = k + 1, col = ROLE_COL[s.role] || "#999", kind = KIND[s.kind] || "info";
-    const r = route(s.go);
-    if (r.length > 1) {
-      heads += `<marker id="${id}h${i}" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${col}"/></marker>`;
-      under += `<polyline points="${r.map(p => p.join(",")).join(" ")}" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="${.016 * z}" stroke-linejoin="round" stroke-linecap="round"/>` +
-        `<polyline points="${r.map(p => p.join(",")).join(" ")}" fill="none" stroke="${col}" stroke-width="${.009 * z}" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#${id}h${i})"/>`;
+  const drawn = {}, back = (r, d) => {  // a point d back along the route from its end
+    for (let j = r.length - 1; j > 0; j--) {
+      const [x1, y1] = r[j], [x2, y2] = r[j - 1], L = Math.hypot(x2 - x1, y2 - y1);
+      if (d <= L) return [x1 + (x2 - x1) * d / L, y1 + (y2 - y1) * d / L];
+      d -= L;
     }
-    for (const a of s.at) {
-      const p = pt(a); if (!p) continue;
-      const [x, y] = p;
+    return r[0];
+  };
+  const marks = [], icons = [];
+  pl.steps.forEach((s, k) => {
+    const i = k + 1, col = ROLE_COL[s.role] || "#999";
+    const r = route(s.go), key = JSON.stringify(r);
+    if (r.length > 1) {
+      const n = drawn[key] = (drawn[key] ?? -1) + 1;
+      if (n === 0) {
+        heads += `<marker id="${id}h${i}" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${col}"/></marker>`;
+        under += `<polyline points="${r.map(p => p.join(",")).join(" ")}" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="${.016 * z}" stroke-linejoin="round" stroke-linecap="round"/>` +
+          `<polyline points="${r.map(p => p.join(",")).join(" ")}" fill="none" stroke="${col}" stroke-width="${.009 * z}" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#${id}h${i})"/>`;
+      }
+      if (!s.pos) icons.push([back(r, n * .085 * z), s, i]);  // followers stand behind whoever goes first
+    }
+    if (s.pos && pt(s.pos)) icons.push([pt(s.pos), s, i]);
+    for (const mk of s.marks) {
+      const p = pt(mk.at); if (!p) continue;
+      const [x, y] = p, kind = KIND[mk.kind] || "info";
       if (kind === "smoke") under += `<circle cx="${x}" cy="${y}" r="${.05 * z}" fill="${col}" fill-opacity=".55" stroke="#fff" stroke-opacity=".8" stroke-width="${.004 * z}"/>`;
       else if (kind === "flash") under += `<polygon points="${[...Array(16)].map((_, j) => { const a2 = j * Math.PI / 8, rr = (j % 2 ? .018 : .045) * z; return [x + rr * Math.cos(a2), y + rr * Math.sin(a2)].map(v => v.toFixed(4)).join(","); }).join(" ")}" fill="#ffd84a" stroke="${col}" stroke-width="${.005 * z}"/>`;
       else if (kind === "trap") under += `<rect x="${x - .025 * z}" y="${y - .025 * z}" width="${.05 * z}" height="${.05 * z}" transform="rotate(45 ${x} ${y})" fill="${col}" fill-opacity=".85" stroke="#fff" stroke-width="${.004 * z}"/>`;
       else if (kind === "molly") under += `<circle cx="${x}" cy="${y}" r="${.035 * z}" fill="#ff7a1a" fill-opacity=".7" stroke="#fff" stroke-width="${.004 * z}"/>`;
       else under += `<circle cx="${x}" cy="${y}" r="${.04 * z}" fill="none" stroke="${col}" stroke-width="${.008 * z}" stroke-dasharray="${.012 * z} ${.008 * z}"/><circle cx="${x}" cy="${y}" r="${.01 * z}" fill="${col}"/>`;
-      over += badge(x + .03 * z, y - .03 * z, i, col);
+      marks.push(badge(x + .03 * z, y - .03 * z, i, col));
     }
-    const end = s.pos ? pt(s.pos) : r.length ? r[r.length - 1] : null;
-    if (end) over += agentAt(end[0], end[1], s, i);
   });
+  // players sharing a spot sit side by side
+  const seen = {};
+  for (const [[x, y], s, i] of icons) { const k = x.toFixed(3) + "," + y.toFixed(3), n = seen[k] = (seen[k] ?? -1) + 1; over += agentAt(x + n * .075 * z, y, s, i); }
+  over = marks.join("") + over;
   return `<div class="pmap"><svg viewBox="${x0} ${y0} ${w} ${w}" role="img" aria-label="${esc(pl.name)} on ${esc(m)}"><defs>${heads}</defs>
     <rect x="${x0}" y="${y0}" width="${w}" height="${w}" fill="#1a1d24"/><image href="${G.img}" width="1" height="1" opacity=".9"/>${under}${over}</svg>
     <div class="mkey"><span><i class="k smoke"></i>smoke</span><span><i class="k flash"></i>flash / stun</span><span><i class="k info"></i>info</span><span><i class="k trap"></i>trap</span><span>→ move</span></div></div>`;
@@ -1370,10 +1613,10 @@ function playsHtml(m, picks) {
       <span class="pname">${esc(pl.name)}</span><span class="idea">${esc(pl.idea)}</span></summary>
       <div class="pbody">${playMap(m, pl)}
       <ol class="legend">${pl.steps.map((s, i) => `<li><span class="nb" style="background:${ROLE_COL[s.role] || "var(--mut)"}">${i + 1}</span>${icon(s.agent, "ai xs")}
-        <div><b>${esc(short(DATA.players[s.p]))}</b>${s.ability ? ` <span class="ab">${esc(s.ability)}</span>` : ""}<div class="do">${esc(s.do)}${s.missing ? ` <span class="miss">(no ${esc(s.missing)} on ${esc(s.agent)})</span>` : ""}</div></div></li>`).join("")}</ol></div>
+        <div><b>${esc(short(DATA.players[s.p]))}</b> <span class="ag">${esc(s.agent)}</span>${s.parts.map(x => `<div class="do">${x.ab ? `<span class="ab">${esc(x.ab)}</span> ` : ""}${esc(x.text.replace("{lead}", pl.lead != null ? short(DATA.players[pl.lead]) : "the entry"))}</div>`).join("")}</div></li>`).join("")}</ol></div>
       ${pl.after ? `<div class="after"><b>After:</b> ${esc(pl.after)}</div>` : ""}</details>`;
   const side = k => { const xs = list.filter(pl => pl.side === k); return xs.length ? `<h4 class="pside">${k}</h4>` + xs.map(one).join("") : ""; };
-  return `<div><h3>Plays for this comp</h3><div class="plays"><p class="phint">Tap one to open it. Shout the call word and everyone knows their job. No lineups needed: all util is thrown freehand.</p>` +
+  return `<div><h3>Plays for this comp</h3><div class="plays"><p class="phint">Tap one to open it. Shout the call word and everyone knows their job. Jobs go to whoever's agent can do them, and no lineups are needed.</p>` +
     side("Attack") + side("Defense") + `</div></div>`;
 }
 

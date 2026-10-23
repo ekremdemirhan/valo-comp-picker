@@ -47,14 +47,18 @@ comps; it isn't a win probability.
 
 ## Plays for the comp
 
-Under the cards there's a **Plays for this comp** list: plays for every map in the current pool
-(Abyss, Bind, Corrode, Haven, Lotus, Summit, Sunset). Each map has 5 attack plays and 5 defense setups, none needing a lineup. Each play has a short **call word** (e.g. `A SPLIT`, `C GO`) and
-gives every player a job with their actual agent's ability, so the IGL can shout the call mid-match. Each play has a small map: coloured blobs show where util lands (smoke, flash/stun, info, trap), arrows show who moves where, and agent icons show where each player ends up; the numbers match the list next to it. The pipeline
-output lists them too.
+Under the cards there's a **Plays for this comp** list: 5 attack plays and 5 defense setups for every map in the current
+pool (Abyss, Bind, Corrode, Haven, Lotus, Summit, Sunset). None needs a lineup. Each play has a short **call word**
+(e.g. `A SPLIT`, `C GO`) so the IGL can shout it mid-match, and a small map showing where the util lands, who goes
+where, and where everyone ends up.
 
-The plays live in `plays.json`. Edit the callouts or add your own plays there; each step just names a job
-(`controller`, `initiator`, `duelist`, `sentinel`, or `fifth` for whoever is left over) and the kind of utility it wants.
-If you add one that needs a lineup, set `"lineup": true` and its name gets "(lineup)" on the page.
+A play lists what it needs (smokes, a flash for the entry, info, entry routes, someone on the flank) and each job goes
+to a player whose agent can actually do it: smokes are split between the controllers (two controllers share them),
+traps go to the sentinel, flashes and recon to initiators, the duelist with a dash goes first. If nobody in the comp
+can do a job (say, no trap agent), that job is quietly skipped or turned into "watch the flank".
+
+The plays live in `plays.json`; edit callouts or add your own there. If you add one that needs a lineup, set
+`"lineup": true` and its name gets "(lineup)" on the page.
 
 ## Setup (once)
 
